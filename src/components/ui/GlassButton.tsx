@@ -54,6 +54,9 @@ const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
       className
     )
 
+    // Filter out potentially conflicting props for framer-motion
+    const { onDragStart, onDrag, onDragEnd, ...filteredProps } = props
+
     if (animated) {
       return (
         <motion.button
@@ -67,9 +70,7 @@ const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
           onBlur={onBlur}
           whileHover={!isDisabled ? { scale: 1.02 } : {}}
           whileTap={!isDisabled ? { scale: 0.98 } : {}}
-          // Remove conflicting event handlers
-          onDragStart={undefined}
-          {...props}
+          {...filteredProps}
         >
           {loading && (
             <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -89,7 +90,7 @@ const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
         onMouseLeave={onMouseLeave}
         onFocus={onFocus}
         onBlur={onBlur}
-        {...props}
+        {...filteredProps}
       >
         {loading && (
           <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
