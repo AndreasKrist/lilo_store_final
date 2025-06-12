@@ -26,7 +26,24 @@ const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
     onMouseLeave,
     onFocus,
     onBlur,
-    ...props
+    type,
+    form,
+    formAction,
+    formEncType,
+    formMethod,
+    formNoValidate,
+    formTarget,
+    name,
+    value,
+    'aria-label': ariaLabel,
+    'aria-describedby': ariaDescribedby,
+    'aria-expanded': ariaExpanded,
+    'aria-pressed': ariaPressed,
+    id,
+    tabIndex,
+    title,
+    role,
+    ...otherProps
   }, ref) => {
     const baseClasses = 'font-medium rounded-lg transition-all duration-300 ease-out relative overflow-hidden inline-flex items-center justify-center gap-2'
     
@@ -54,23 +71,41 @@ const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
       className
     )
 
-    // Filter out potentially conflicting props for framer-motion
-    const { onDragStart, onDrag, onDragEnd, ...filteredProps } = props
+    // Safe props that work with both regular buttons and motion.button
+    const safeProps = {
+      disabled: isDisabled,
+      onClick,
+      onMouseEnter,
+      onMouseLeave,
+      onFocus,
+      onBlur,
+      type,
+      form,
+      formAction,
+      formEncType,
+      formMethod,
+      formNoValidate,
+      formTarget,
+      name,
+      value,
+      'aria-label': ariaLabel,
+      'aria-describedby': ariaDescribedby,
+      'aria-expanded': ariaExpanded,
+      'aria-pressed': ariaPressed,
+      id,
+      tabIndex,
+      title,
+      role,
+    }
 
     if (animated) {
       return (
         <motion.button
           ref={ref}
           className={buttonClasses}
-          disabled={isDisabled}
-          onClick={onClick}
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-          onFocus={onFocus}
-          onBlur={onBlur}
           whileHover={!isDisabled ? { scale: 1.02 } : {}}
           whileTap={!isDisabled ? { scale: 0.98 } : {}}
-          {...filteredProps}
+          {...safeProps}
         >
           {loading && (
             <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -84,13 +119,8 @@ const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
       <button
         ref={ref}
         className={buttonClasses}
-        disabled={isDisabled}
-        onClick={onClick}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        {...filteredProps}
+        {...safeProps}
+        {...otherProps}
       >
         {loading && (
           <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
