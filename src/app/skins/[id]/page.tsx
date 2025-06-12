@@ -1,91 +1,89 @@
-// src/app/skins/[id]/page.tsx
-import { notFound } from 'next/navigation'
+'use client'
 
-// Sample skin data - replace with your actual data source
-const skins = [
-  {
-    id: '1',
-    name: 'AK-47 | Redline',
-    price: 25.99,
-    image: '/images/ak47-redline.jpg',
-    description: 'A classic AK-47 skin with red and black design.'
-  },
-  // Add more skins...
-]
+import { motion } from 'framer-motion'
+import { forwardRef } from 'react'
+import type { ButtonHTMLAttributes } from 'react'
 
-interface PageProps {
-  params: {
-    id: string
-  }
+interface GlassButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onDragStart'> {
+  variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning'
+  size?: 'sm' | 'md' | 'lg'
+  loading?: boolean
+  icon?: React.ReactNode
+  fullWidth?: boolean
 }
 
-export default function SkinPage({ params }: PageProps) {
-  const skin = skins.find(s => s.id === params.id)
-  
-  if (!skin) {
-    notFound()
-  }
+const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
+  ({
+    children,
+    variant = 'primary',
+    size = 'md',
+    loading = false,
+    disabled = false,
+    icon,
+    fullWidth = false,
+    className = '',
+    ...props
+  }, ref) => {
+    const isDisabled = disabled || loading
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-8">
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Skin Image */}
-              <div className="aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-purple-500/20 to-blue-500/20">
-                <img 
-                  src={skin.image} 
-                  alt={skin.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              
-              {/* Skin Details */}
-              <div className="space-y-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-white mb-2">
-                    {skin.name}
-                  </h1>
-                  <p className="text-gray-300">
-                    {skin.description}
-                  </p>
-                </div>
-                
-                <div className="text-4xl font-bold text-green-400">
-                  ${skin.price}
-                </div>
-                
-                <div className="space-y-4">
-                  <button className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200">
-                    Buy Now
-                  </button>
-                  
-                  <button className="w-full bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/20 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200">
-                    Add to Wishlist
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Generate metadata for SEO
-export async function generateMetadata({ params }: PageProps) {
-  const skin = skins.find(s => s.id === params.id)
-  
-  if (!skin) {
-    return {
-      title: 'Skin Not Found - Lilo Store'
+    const variants = {
+      primary: 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border-blue-500/30 text-white',
+      secondary: 'bg-white/10 hover:bg-white/20 border-white/20 text-white',
+      success: 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border-green-500/30 text-white',
+      danger: 'bg-gradient-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30 border-red-500/30 text-white',
+      warning: 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 border-yellow-500/30 text-white'
     }
-  }
 
-  return {
-    title: `${skin.name} - Lilo Store`,
-    description: skin.description,
+    const sizes = {
+      sm: 'px-3 py-1.5 text-sm',
+      md: 'px-4 py-2 text-base',
+      lg: 'px-6 py-3 text-lg'
+    }
+
+    const baseClasses = `
+      relative overflow-hidden
+      backdrop-blur-lg
+      border
+      rounded-xl
+      font-semibold
+      transition-all duration-200
+      focus:outline-none focus:ring-2 focus:ring-blue-500/50
+      disabled:opacity-50 disabled:cursor-not-allowed
+      ${fullWidth ? 'w-full' : ''}
+      ${variants[variant]}
+      ${sizes[size]}
+      ${className}
+    `
+
+    return (
+      <motion.button
+        ref={ref}
+        className={baseClasses}
+        disabled={isDisabled}
+        whileHover={!isDisabled ? { scale: 1.02 } : {}}
+        whileTap={!isDisabled ? { scale: 0.98 } : {}}
+        {...props}
+      >
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          </div>
+        )}
+        
+        <div className="flex items-center justify-center gap-2">
+          {icon && !loading && (
+            <span className="flex-shrink-0">{icon}</span>
+          )}
+          {children}
+        </div>
+        
+        {/* Glass effect overlay */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
+      </motion.button>
+    )
   }
-}
+)
+
+GlassButton.displayName = 'GlassButton'
+
+export default GlassButton
