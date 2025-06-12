@@ -1,10 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { forwardRef } from 'react'
 import type { ButtonHTMLAttributes } from 'react'
 
-interface GlassButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onDragStart'> {
+interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
@@ -40,28 +39,20 @@ const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
       lg: 'px-6 py-3 text-lg'
     }
 
-    const baseClasses = `
-      relative overflow-hidden
-      backdrop-blur-lg
-      border
-      rounded-xl
-      font-semibold
-      transition-all duration-200
-      focus:outline-none focus:ring-2 focus:ring-blue-500/50
-      disabled:opacity-50 disabled:cursor-not-allowed
-      ${fullWidth ? 'w-full' : ''}
-      ${variants[variant]}
-      ${sizes[size]}
-      ${className}
-    `
-
     return (
-      <motion.button
+      <button
         ref={ref}
-        className={baseClasses}
+        className={`
+          relative overflow-hidden backdrop-blur-lg border rounded-xl font-semibold
+          transition-all duration-200 transform hover:scale-105 active:scale-95
+          focus:outline-none focus:ring-2 focus:ring-blue-500/50
+          disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+          ${fullWidth ? 'w-full' : ''}
+          ${variants[variant]}
+          ${sizes[size]}
+          ${className}
+        `}
         disabled={isDisabled}
-        whileHover={!isDisabled ? { scale: 1.02 } : {}}
-        whileTap={!isDisabled ? { scale: 0.98 } : {}}
         {...props}
       >
         {loading && (
@@ -70,7 +61,7 @@ const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
           </div>
         )}
         
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2 relative z-10">
           {icon && !loading && (
             <span className="flex-shrink-0">{icon}</span>
           )}
@@ -79,7 +70,7 @@ const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
         
         {/* Glass effect overlay */}
         <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
-      </motion.button>
+      </button>
     )
   }
 )
