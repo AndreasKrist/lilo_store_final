@@ -1,103 +1,144 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { ReactNode, forwardRef, ButtonHTMLAttributes } from 'react'
-import { cn } from '@/lib/utils'
+import { notFound } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import React from 'react'
 
-interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  children: ReactNode
-  variant?: 'primary' | 'secondary' | 'glass' | 'success' | 'danger'
-  size?: 'sm' | 'md' | 'lg'
-  loading?: boolean
-  animated?: boolean
+// Sample skin data - replace with your actual data source
+const skins = [
+  {
+    id: '1',
+    name: 'AK-47 | Redline',
+    price: 25.99,
+    image: '/images/ak47-redline.jpg',
+    description: 'A classic AK-47 skin with red and black design.',
+    condition: 'Field-Tested',
+    rarity: 'Classified'
+  },
+  {
+    id: '2', 
+    name: 'AWP | Dragon Lore',
+    price: 2500.00,
+    image: '/images/awp-dragonlore.jpg',
+    description: 'The legendary Dragon Lore sniper rifle.',
+    condition: 'Factory New',
+    rarity: 'Covert'
+  },
+  {
+    id: '3',
+    name: 'M4A4 | Asiimov',
+    price: 45.50,
+    image: '/images/m4a4-asiimov.jpg',
+    description: 'Futuristic design with orange and white colors.',
+    condition: 'Well-Worn', 
+    rarity: 'Covert'
+  }
+]
+
+interface PageProps {
+  params: {
+    id: string
+  }
 }
 
-const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
-  ({ 
-    children, 
-    variant = 'glass', 
-    size = 'md', 
-    className = '',
-    loading = false,
-    animated = true,
-    disabled,
-    onClick,
-    onMouseEnter,
-    onMouseLeave,
-    onFocus,
-    onBlur,
-    ...props
-  }, ref) => {
-    const baseClasses = 'font-medium rounded-lg transition-all duration-300 ease-out relative overflow-hidden inline-flex items-center justify-center gap-2'
-    
-    const variants = {
-      primary: 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/25',
-      secondary: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg hover:shadow-green-500/25',
-      success: 'bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:shadow-lg hover:shadow-emerald-500/25',
-      danger: 'bg-gradient-to-r from-red-500 to-rose-600 text-white hover:shadow-lg hover:shadow-red-500/25',
-      glass: 'bg-white/5 backdrop-blur-[10px] border border-white/10 text-white hover:bg-white/8'
-    }
-    
-    const sizes = {
-      sm: 'px-4 py-2 text-sm',
-      md: 'px-6 py-3 text-base',
-      lg: 'px-8 py-4 text-lg'
-    }
-
-    const isDisabled = disabled || loading
-
-    const buttonClasses = cn(
-      baseClasses,
-      variants[variant],
-      sizes[size],
-      isDisabled && 'opacity-50 cursor-not-allowed',
-      className
-    )
-
-    if (animated) {
-      return (
-        <motion.button
-          ref={ref}
-          className={buttonClasses}
-          disabled={isDisabled}
-          onClick={onClick}
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          whileHover={!isDisabled ? { scale: 1.02 } : {}}
-          whileTap={!isDisabled ? { scale: 0.98 } : {}}
-          {...props}
-        >
-          {loading && (
-            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-          )}
-          {children}
-        </motion.button>
-      )
-    }
-
-    return (
-      <button
-        ref={ref}
-        className={buttonClasses}
-        disabled={isDisabled}
-        onClick={onClick}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        {...props}
-      >
-        {loading && (
-          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-        )}
-        {children}
-      </button>
-    )
+export default function SkinPage({ params }: PageProps): React.JSX.Element {
+  const router = useRouter()
+  const skin = skins.find(s => s.id === params.id)
+  
+  if (!skin) {
+    notFound()
   }
-)
 
-GlassButton.displayName = 'GlassButton'
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Back Button */}
+          <div className="mb-6">
+            <button 
+              onClick={() => router.back()}
+              className="bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/20 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-200"
+            >
+              ← Back
+            </button>
+          </div>
 
-export default GlassButton
+          {/* Main Content */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-8">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Skin Image */}
+              <div className="aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
+                <div className="text-white/60 text-center">
+                  <div className="text-6xl mb-4">🎯</div>
+                  <p>Skin Image</p>
+                  <p className="text-sm">{skin.name}</p>
+                </div>
+              </div>
+              
+              {/* Skin Details */}
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">
+                    {skin.name}
+                  </h1>
+                  <p className="text-gray-300 mb-4">
+                    {skin.description}
+                  </p>
+                  
+                  {/* Skin Info */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-white/5 rounded-lg p-3">
+                      <p className="text-gray-400 text-sm">Condition</p>
+                      <p className="text-white font-semibold">{skin.condition}</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-3">
+                      <p className="text-gray-400 text-sm">Rarity</p>
+                      <p className="text-white font-semibold">{skin.rarity}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-4xl font-bold text-green-400">
+                  ${skin.price.toFixed(2)}
+                </div>
+                
+                <div className="space-y-4">
+                  <button className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105">
+                    Buy Now
+                  </button>
+                  
+                  <button className="w-full bg-white/10 backdrop-blur-lg border border-white/20 hover:bg-white/20 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200">
+                    Add to Wishlist
+                  </button>
+                  
+                  <button className="w-full bg-orange-500/20 border border-orange-500/30 hover:bg-orange-500/30 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200">
+                    Inspect in Game
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Additional Info */}
+            <div className="mt-8 pt-8 border-t border-white/10">
+              <h3 className="text-xl font-bold text-white mb-4">About This Skin</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-white/5 rounded-lg p-4">
+                  <h4 className="font-semibold text-white mb-2">Authenticity</h4>
+                  <p className="text-gray-300 text-sm">Verified authentic CS2 skin</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-4">
+                  <h4 className="font-semibold text-white mb-2">Delivery</h4>
+                  <p className="text-gray-300 text-sm">Instant trade delivery</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-4">
+                  <h4 className="font-semibold text-white mb-2">Support</h4>
+                  <p className="text-gray-300 text-sm">24/7 customer support</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
