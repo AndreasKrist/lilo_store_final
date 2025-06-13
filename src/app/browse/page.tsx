@@ -1,19 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Filter, Grid, List, SortAsc } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import SearchBar from '@/components/ui/SearchBar'
 import LoadingSpinner, { SkeletonCard } from '@/components/ui/LoadingSpinner'
 import SkinCard, { SkinCardSkeleton } from '@/components/skins/SkinCard'
+import SkinDetailModal from '@/components/ui/SkinDetailModal'
 import BuySellModal from '@/components/ui/BuySellModal'
 import { useSkins } from '@/hooks/useSkins'
-import { SkinFilters, WeaponType, SkinRarity, SkinCondition, WEAPON_TYPES, SKIN_RARITIES } from '@/types'
+import { SkinFilters, WeaponType, SkinRarity, WEAPON_TYPES, SKIN_RARITIES, Skin } from '@/types'
 
 const ITEMS_PER_PAGE_OPTIONS = [12, 24, 48]
 
-interface ModalState {
+interface BuySellModalState {
   isOpen: boolean
   type: 'buy' | 'sell'
   skinName: string
@@ -23,9 +25,12 @@ interface ModalState {
 }
 
 export default function BrowsePage() {
+  const searchParams = useSearchParams()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
-  const [modal, setModal] = useState<ModalState>({
+  const [selectedSkin, setSelectedSkin] = useState<Skin | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [buySellModal, setBuySellModal] = useState<BuySellModalState>({
     isOpen: false,
     type: 'buy',
     skinName: '',
@@ -46,8 +51,26 @@ export default function BrowsePage() {
     clearFilters,
   } = useSkins()
 
+  // Handle URL search parameters
+  useEffect(() => {
+    const urlSearch = searchParams.get('search')
+    if (urlSearch && urlSearch !== filters.search) {
+      handleSearch(urlSearch)
+    }
+  }, [searchParams, filters.search, handleSearch])
+
+  const handleViewSkin = (skin: Skin) => {
+    setSelectedSkin(skin)
+    setShowDetailModal(true)
+  }
+
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false)
+    setSelectedSkin(null)
+  }
+
   const handleBuySkin = (skinId: string, condition: string) => {
-    const skin = skins.find(s => s.id === skinId)
+    const skin = skins.find(s => s.id === skinId) || selectedSkin
     if (!skin) return
 
     // Find the condition data
@@ -57,7 +80,10 @@ export default function BrowsePage() {
 
     if (!conditionData) return
 
-    setModal({
+    // Close detail modal first
+    setShowDetailModal(false)
+
+    setBuySellModal({
       isOpen: true,
       type: 'buy',
       skinName: skin.name,
@@ -68,7 +94,7 @@ export default function BrowsePage() {
   }
 
   const handleSellSkin = (skinId: string, condition: string) => {
-    const skin = skins.find(s => s.id === skinId)
+    const skin = skins.find(s => s.id === skinId) || selectedSkin
     if (!skin) return
 
     // Find the condition data
@@ -78,7 +104,10 @@ export default function BrowsePage() {
 
     if (!conditionData) return
 
-    setModal({
+    // Close detail modal first
+    setShowDetailModal(false)
+
+    setBuySellModal({
       isOpen: true,
       type: 'sell',
       skinName: skin.name,
@@ -88,23 +117,23 @@ export default function BrowsePage() {
     })
   }
 
-  const closeModal = () => {
-    setModal(prev => ({ ...prev, isOpen: false }))
+  const closeBuySellModal = () => {
+    setBuySellModal(prev => ({ ...prev, isOpen: false }))
   }
 
   return (
-    <div className="min-h-screen px-4 py-8">
+    <div className="min-h-screen px-4 py-6 lg:py-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">Browse CS2 Skins</h1>
-          <p className="text-gray-300">
+        <div className="mb-6 lg:mb-8">
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2 lg:mb-4">Browse CS2 Skins</h1>
+          <p className="text-gray-300 text-sm lg:text-base">
             Discover thousands of CS2 skins with real-time pricing and instant quotes
           </p>
         </div>
 
         {/* Search Bar */}
-        <div className="mb-8">
+        <div className="mb-6 lg:mb-8">
           <SearchBar 
             onSearch={handleSearch}
             initialValue={filters.search}
@@ -113,12 +142,12 @@ export default function BrowsePage() {
         </div>
 
         {/* Filters and Controls */}
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Sidebar Filters */}
-          <div className={`lg:w-80 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-            <GlassCard className="p-6 sticky top-24">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Filters</h2>
+          <div className={`w-full lg:w-80 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+            <GlassCard className="p-4 lg:p-6 sticky top-24">
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <h2 className="text-lg lg:text-xl font-bold text-white">Filters</h2>
                 <GlassButton 
                   size="sm" 
                   onClick={clearFilters}
@@ -128,13 +157,13 @@ export default function BrowsePage() {
                 </GlassButton>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4 lg:space-y-6">
                 {/* Weapon Types */}
                 <div>
-                  <h3 className="font-semibold text-white mb-3">Weapon Type</h3>
-                  <div className="space-y-2">
+                  <h3 className="font-semibold text-white mb-3 text-sm lg:text-base">Weapon Type</h3>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
                     {Object.entries(WEAPON_TYPES).map(([type, label]) => (
-                      <label key={type} className="flex items-center space-x-3">
+                      <label key={type} className="flex items-center space-x-2 lg:space-x-3 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={filters.weapon_types?.includes(type as WeaponType) || false}
@@ -145,9 +174,9 @@ export default function BrowsePage() {
                               : currentTypes.filter(t => t !== type)
                             handleFilterChange({ weapon_types: newTypes })
                           }}
-                          className="w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500"
+                          className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500"
                         />
-                        <span className="text-sm text-gray-300">{label}</span>
+                        <span className="text-xs lg:text-sm text-gray-300">{label}</span>
                       </label>
                     ))}
                   </div>
@@ -155,10 +184,10 @@ export default function BrowsePage() {
 
                 {/* Rarity */}
                 <div>
-                  <h3 className="font-semibold text-white mb-3">Rarity</h3>
+                  <h3 className="font-semibold text-white mb-3 text-sm lg:text-base">Rarity</h3>
                   <div className="space-y-2">
                     {Object.entries(SKIN_RARITIES).map(([rarity, { name, color }]) => (
-                      <label key={rarity} className="flex items-center space-x-3">
+                      <label key={rarity} className="flex items-center space-x-2 lg:space-x-3 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={filters.rarities?.includes(rarity as SkinRarity) || false}
@@ -169,9 +198,9 @@ export default function BrowsePage() {
                               : currentRarities.filter(r => r !== rarity)
                             handleFilterChange({ rarities: newRarities })
                           }}
-                          className="w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500"
+                          className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500"
                         />
-                        <span className={`text-sm text-${color}-400`}>{name}</span>
+                        <span className={`text-xs lg:text-sm text-${color}-400`}>{name}</span>
                       </label>
                     ))}
                   </div>
@@ -179,7 +208,7 @@ export default function BrowsePage() {
 
                 {/* Price Range */}
                 <div>
-                  <h3 className="font-semibold text-white mb-3">Price Range</h3>
+                  <h3 className="font-semibold text-white mb-3 text-sm lg:text-base">Price Range</h3>
                   <div className="space-y-3">
                     <div>
                       <label className="block text-xs text-gray-400 mb-1">Min Price ($)</label>
@@ -190,7 +219,7 @@ export default function BrowsePage() {
                         onChange={(e) => handleFilterChange({ 
                           price_min: e.target.value ? parseFloat(e.target.value) : undefined 
                         })}
-                        className="form-input text-sm"
+                        className="form-input text-sm w-full"
                       />
                     </div>
                     <div>
@@ -202,34 +231,9 @@ export default function BrowsePage() {
                         onChange={(e) => handleFilterChange({ 
                           price_max: e.target.value ? parseFloat(e.target.value) : undefined 
                         })}
-                        className="form-input text-sm"
+                        className="form-input text-sm w-full"
                       />
                     </div>
-                  </div>
-                </div>
-
-                {/* Quick Price Filters */}
-                <div>
-                  <h3 className="font-semibold text-white mb-3">Quick Filters</h3>
-                  <div className="space-y-2">
-                    {[
-                      { label: 'Under $50', min: 0, max: 50 },
-                      { label: '$50 - $100', min: 50, max: 100 },
-                      { label: '$100 - $500', min: 100, max: 500 },
-                      { label: 'Over $500', min: 500, max: undefined },
-                    ].map((range) => (
-                      <GlassButton
-                        key={range.label}
-                        size="sm"
-                        onClick={() => handleFilterChange({ 
-                          price_min: range.min, 
-                          price_max: range.max 
-                        })}
-                        className="w-full text-left justify-start"
-                      >
-                        {range.label}
-                      </GlassButton>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -239,27 +243,28 @@ export default function BrowsePage() {
           {/* Main Content */}
           <div className="flex-1">
             {/* Controls Bar */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 lg:gap-4 mb-4 lg:mb-6">
+              <div className="flex items-center gap-3 lg:gap-4 w-full sm:w-auto">
                 <GlassButton
                   onClick={() => setShowFilters(!showFilters)}
-                  className="lg:hidden"
+                  className="lg:hidden flex-1 sm:flex-initial"
+                  size="sm"
                 >
                   <Filter size={16} />
-                  Filters
+                  <span className="ml-1">Filters</span>
                 </GlassButton>
                 
-                <span className="text-gray-300 text-sm">
+                <span className="text-gray-300 text-sm whitespace-nowrap">
                   {pagination.total} skins found
                 </span>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 lg:gap-4 w-full sm:w-auto">
                 {/* Sort */}
                 <select
                   value={filters.sort_by}
                   onChange={(e) => handleSortChange(e.target.value as SkinFilters['sort_by'])}
-                  className="form-select text-sm"
+                  className="form-select text-sm flex-1 sm:flex-initial min-w-0"
                 >
                   <option value="name_asc">Name A-Z</option>
                   <option value="name_desc">Name Z-A</option>
@@ -269,16 +274,18 @@ export default function BrowsePage() {
                 </select>
 
                 {/* View Mode */}
-                <div className="flex bg-white/5 rounded-lg p-1">
+                <div className="flex bg-white/5 rounded-lg p-1 flex-shrink-0">
                   <button
                     onClick={() => setViewMode('grid')}
                     className={`p-2 rounded ${viewMode === 'grid' ? 'bg-white/10' : ''}`}
+                    title="Grid View"
                   >
                     <Grid size={16} className="text-gray-300" />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
                     className={`p-2 rounded ${viewMode === 'list' ? 'bg-white/10' : ''}`}
+                    title="List View"
                   >
                     <List size={16} className="text-gray-300" />
                   </button>
@@ -289,8 +296,8 @@ export default function BrowsePage() {
             {/* Results */}
             {isLoading ? (
               <div className={`grid ${viewMode === 'grid' 
-                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                : 'grid-cols-1'} gap-6`}
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+                : 'grid-cols-1'} gap-4 lg:gap-6`}
               >
                 {Array.from({ length: 8 }).map((_, i) => (
                   <SkinCardSkeleton key={i} compact={viewMode === 'list'} />
@@ -299,15 +306,14 @@ export default function BrowsePage() {
             ) : skins.length > 0 ? (
               <>
                 <div className={`grid ${viewMode === 'grid' 
-                  ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                  : 'grid-cols-1'} gap-6`}
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+                  : 'grid-cols-1'} gap-4 lg:gap-6`}
                 >
                   {skins.map((skin) => (
                     <SkinCard
                       key={skin.id}
                       skin={skin}
-                      onBuy={handleBuySkin}
-                      onSell={handleSellSkin}
+                      onView={handleViewSkin}
                       compact={viewMode === 'list'}
                     />
                   ))}
@@ -315,11 +321,12 @@ export default function BrowsePage() {
 
                 {/* Pagination */}
                 {pagination.totalPages > 1 && (
-                  <div className="flex justify-center mt-12">
-                    <div className="flex items-center gap-2">
+                  <div className="flex justify-center mt-8 lg:mt-12">
+                    <div className="flex items-center gap-2 flex-wrap justify-center">
                       <GlassButton
                         onClick={() => handlePageChange(pagination.page - 1)}
                         disabled={pagination.page === 1}
+                        size="sm"
                       >
                         Previous
                       </GlassButton>
@@ -331,6 +338,8 @@ export default function BrowsePage() {
                             key={page}
                             onClick={() => handlePageChange(page)}
                             variant={pagination.page === page ? 'primary' : 'glass'}
+                            size="sm"
+                            className="w-10 h-10 p-0 flex items-center justify-center"
                           >
                             {page}
                           </GlassButton>
@@ -340,6 +349,7 @@ export default function BrowsePage() {
                       <GlassButton
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={pagination.page === pagination.totalPages}
+                        size="sm"
                       >
                         Next
                       </GlassButton>
@@ -348,8 +358,8 @@ export default function BrowsePage() {
                 )}
               </>
             ) : (
-              <GlassCard className="p-12 text-center">
-                <div className="text-6xl mb-4">🔍</div>
+              <GlassCard className="p-8 lg:p-12 text-center">
+                <div className="text-4xl lg:text-6xl mb-4">🔍</div>
                 <h3 className="text-xl font-bold text-white mb-2">No skins found</h3>
                 <p className="text-gray-300 mb-6">
                   Try adjusting your filters or search terms
@@ -362,15 +372,24 @@ export default function BrowsePage() {
           </div>
         </div>
 
+        {/* Skin Detail Modal */}
+        <SkinDetailModal
+          isOpen={showDetailModal}
+          onClose={handleCloseDetailModal}
+          skin={selectedSkin}
+          onBuy={handleBuySkin}
+          onSell={handleSellSkin}
+        />
+
         {/* Buy/Sell Modal */}
         <BuySellModal
-          isOpen={modal.isOpen}
-          onClose={closeModal}
-          type={modal.type}
-          skinName={modal.skinName}
-          condition={modal.condition}
-          price={modal.price}
-          skinId={modal.skinId}
+          isOpen={buySellModal.isOpen}
+          onClose={closeBuySellModal}
+          type={buySellModal.type}
+          skinName={buySellModal.skinName}
+          condition={buySellModal.condition}
+          price={buySellModal.price}
+          skinId={buySellModal.skinId}
         />
       </div>
     </div>

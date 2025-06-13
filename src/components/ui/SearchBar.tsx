@@ -10,14 +10,12 @@ interface SearchBarProps {
   onSearch: (query: string) => void
   placeholder?: string
   initialValue?: string
-  showQuickFilters?: boolean
 }
 
 export default function SearchBar({ 
   onSearch, 
   placeholder = "Search CS2 skins...", 
-  initialValue = '',
-  showQuickFilters = true 
+  initialValue = ''
 }: SearchBarProps) {
   const [query, setQuery] = useState(initialValue)
 
@@ -40,54 +38,28 @@ export default function SearchBar({
     onSearch(query)
   }
 
-  const handleQuickFilter = (filter: string) => {
-    setQuery(filter)
-    onSearch(filter)
-  }
-
-  const quickFilters = [
-    'AK-47',
-    'AWP',
-    'M4A4',
-    'Knife',
-    'Gloves',
-    'Under $100',
-    'Factory New',
-    'Covert'
-  ]
-
   return (
-    <GlassCard className="p-6 max-w-2xl mx-auto">
-      <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4">
+    <GlassCard className="p-4 lg:p-6 max-w-2xl mx-auto">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 lg:gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 lg:w-5 lg:h-5" />
           <input
             type="text"
             value={query}
             onChange={handleInputChange}
             placeholder={placeholder}
-            className="w-full bg-transparent border border-gray-600 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
+            className="w-full bg-transparent border border-gray-600 rounded-lg pl-10 lg:pl-12 pr-3 lg:pr-4 py-2.5 lg:py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors text-sm lg:text-base"
           />
         </div>
-        <GlassButton variant="primary" type="submit">
+        <GlassButton 
+          variant="primary" 
+          type="submit"
+          className="w-full sm:w-auto px-6 lg:px-8"
+          size="sm"
+        >
           Search
         </GlassButton>
       </form>
-      
-      {showQuickFilters && (
-        <div className="flex flex-wrap gap-2 mt-4">
-          {quickFilters.map((filter) => (
-            <GlassButton
-              key={filter}
-              size="sm"
-              onClick={() => handleQuickFilter(filter)}
-              className="rounded-full"
-            >
-              {filter}
-            </GlassButton>
-          ))}
-        </div>
-      )}
     </GlassCard>
   )
 }

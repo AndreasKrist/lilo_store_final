@@ -15,6 +15,7 @@
 
 * {
   font-family: 'Inter', sans-serif;
+  color: white; /* Ensure all text is white by default */
 }
 
 html {
@@ -25,11 +26,18 @@ body {
   background: var(--gradient-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  color: white;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+}
+
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
 }
 
 ::-webkit-scrollbar-track {
@@ -146,22 +154,29 @@ select:focus {
 /* Responsive text sizes */
 @media (max-width: 640px) {
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
+    line-height: 1.1;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.75rem;
     line-height: 1.1;
   }
 }
 
 /* Custom form styles */
 .form-input {
-  @apply w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:bg-white/10 transition-all;
+  @apply w-full bg-white/5 border border-white/20 rounded-lg px-3 lg:px-4 py-2 lg:py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:bg-white/10 transition-all text-sm lg:text-base;
 }
 
 .form-select {
-  @apply w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:bg-white/10 transition-all appearance-none cursor-pointer;
+  @apply w-full bg-white/5 border border-white/20 rounded-lg px-3 lg:px-4 py-2 lg:py-3 text-white focus:border-purple-500 focus:bg-white/10 transition-all appearance-none cursor-pointer text-sm lg:text-base;
 }
 
 .form-textarea {
-  @apply w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:bg-white/10 transition-all resize-none;
+  @apply w-full bg-white/5 border border-white/20 rounded-lg px-3 lg:px-4 py-2 lg:py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:bg-white/10 transition-all resize-none text-sm lg:text-base;
 }
 
 /* Ticket status colors */
@@ -185,9 +200,120 @@ select:focus {
   @apply bg-purple-500/20 text-purple-400 border-purple-500/30;
 }
 
+/* Line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Reduce spacing on mobile */
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-8 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  /* Adjust padding for cards on mobile */
+  .glass-card {
+    padding: 1rem;
+  }
+  
+  /* Better touch targets */
+  button, .glass-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  .text-4xl {
+    font-size: 2rem;
+  }
+  
+  .text-3xl {
+    font-size: 1.75rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+  
+  .text-xl {
+    font-size: 1.25rem;
+  }
+  
+  /* Reduce padding further on very small screens */
+  .glass-card {
+    padding: 0.75rem;
+  }
+  
+  /* Stack buttons vertically on very small screens */
+  .flex-mobile-stack {
+    flex-direction: column;
+  }
+  
+  .flex-mobile-stack > * {
+    width: 100%;
+  }
+}
+
+/* Ensure proper contrast and visibility */
+h1, h2, h3, h4, h5, h6 {
+  color: white;
+}
+
+p, span, div, a {
+  color: white;
+}
+
+/* Override any potential dark text */
+.text-black {
+  color: white !important;
+}
+
+/* Improve mobile navigation spacing */
+@media (max-width: 1024px) {
+  .navbar-mobile {
+    padding-top: 5rem;
+  }
+}
+
 /* Print styles */
 @media print {
   .no-print {
     display: none !important;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .floating-animation,
+  .shimmer {
+    animation: none;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

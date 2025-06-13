@@ -88,10 +88,10 @@ export default function BuySellModal({
   if (success) {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <GlassCard className="max-w-md w-full p-8 text-center">
-          <div className="text-6xl mb-4">✅</div>
-          <h2 className="text-2xl font-bold text-white mb-2">Success!</h2>
-          <p className="text-gray-300 mb-4">
+        <GlassCard className="max-w-md w-full p-6 lg:p-8 text-center">
+          <div className="text-4xl lg:text-6xl mb-4">✅</div>
+          <h2 className="text-xl lg:text-2xl font-bold text-white mb-2">Success!</h2>
+          <p className="text-gray-300 mb-4 text-sm lg:text-base">
             Your {type} request has been submitted successfully. 
             You can track its progress in "My Tickets".
           </p>
@@ -102,47 +102,47 @@ export default function BuySellModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <GlassCard className="max-w-lg w-full">
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+      <GlassCard className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 lg:p-6 border-b border-white/10 sticky top-0 bg-white/5 backdrop-blur-md">
           <div className="flex items-center space-x-3">
             {type === 'buy' ? (
-              <ShoppingCart className="w-6 h-6 text-blue-400" />
+              <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6 text-blue-400" />
             ) : (
-              <DollarSign className="w-6 h-6 text-green-400" />
+              <DollarSign className="w-5 h-5 lg:w-6 lg:h-6 text-green-400" />
             )}
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-lg lg:text-xl font-bold text-white">
               {type === 'buy' ? 'Buy Request' : 'Sell Request'}
             </h2>
           </div>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-colors p-1"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 lg:w-6 lg:h-6" />
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 lg:p-6">
           {/* Skin Info */}
-          <div className="bg-white/5 rounded-lg p-4 mb-6">
-            <h3 className="font-bold text-white mb-2">{skinName}</h3>
+          <div className="bg-white/5 rounded-lg p-4 mb-4 lg:mb-6">
+            <h3 className="font-bold text-white mb-2 text-base lg:text-lg">{skinName}</h3>
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-300">{condition}</span>
-              <span className="text-2xl font-bold text-green-400">
+              <span className="text-xl lg:text-2xl font-bold text-green-400">
                 ${price.toFixed(2)}
               </span>
             </div>
           </div>
 
           {/* Process Info */}
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4 lg:mb-6">
             <div className="flex items-start space-x-3">
-              <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-blue-300">
                 {type === 'buy' ? (
                   <div>
                     <p className="font-semibold mb-1">How buying works:</p>
-                    <ul className="space-y-1 text-xs">
+                    <ul className="space-y-1 text-xs lg:text-sm">
                       <li>• We'll find the skin and provide exact pricing</li>
                       <li>• Pay to secure your order</li>
                       <li>• Receive your skin after 7-day trade hold</li>
@@ -151,7 +151,7 @@ export default function BuySellModal({
                 ) : (
                   <div>
                     <p className="font-semibold mb-1">How selling works:</p>
-                    <ul className="space-y-1 text-xs">
+                    <ul className="space-y-1 text-xs lg:text-sm">
                       <li>• We'll evaluate your skin and provide a quote</li>
                       <li>• Accept the quote and send via Steam trade</li>
                       <li>• Get paid instantly after confirmation</li>
@@ -163,7 +163,7 @@ export default function BuySellModal({
           </div>
 
           {/* Notes */}
-          <div className="mb-6">
+          <div className="mb-4 lg:mb-6">
             <label className="block text-sm font-medium text-white mb-2">
               Additional Notes (Optional)
             </label>
@@ -176,17 +176,17 @@ export default function BuySellModal({
                   : 'Describe your skin condition, special features, or other details.'
               }
               rows={3}
-              className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:bg-white/10 transition-all resize-none"
+              className="w-full bg-white/5 border border-white/20 rounded-lg px-3 lg:px-4 py-2 lg:py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:bg-white/10 transition-all resize-none text-sm lg:text-base"
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
             <GlassButton
               onClick={handleSubmit}
               variant={type === 'buy' ? 'primary' : 'secondary'}
               loading={isSubmitting}
-              className="flex-1"
+              className="flex-1 text-sm lg:text-base"
             >
               {isSubmitting 
                 ? 'Submitting...' 
@@ -196,6 +196,7 @@ export default function BuySellModal({
             <GlassButton
               onClick={onClose}
               disabled={isSubmitting}
+              className="sm:w-auto text-sm lg:text-base"
             >
               Cancel
             </GlassButton>
