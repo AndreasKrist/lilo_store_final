@@ -1,7 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import { supabase } from './supabase'
-import { randomUUID } from 'crypto'
+import { createServerClient } from './supabase'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,7 +15,10 @@ export const authOptions: NextAuthOptions = {
         try {
           console.log('🔍 SignIn callback - checking user:', user.email)
           
-          // Check if user exists in Supabase using email
+          // Use server client to bypass RLS
+          const supabase = createServerClient()
+          
+          // Check if user exists in our users table
           const { data: existingUser, error: fetchError } = await supabase
             .from('users')
             .select('*')
@@ -31,10 +33,10 @@ export const authOptions: NextAuthOptions = {
           if (!existingUser) {
             console.log('👤 Creating new user for:', user.email)
             
-            // Generate a proper UUID for new users
-            const userId = randomUUID()
+            // For new users, we'll use a generated UUID that we can control
+            const userId = crypto.randomUUID()
             
-            // Create new user in Supabase
+            // Create user in our custom users table
             const { error: createError } = await supabase
               .from('users')
               .insert([
@@ -54,11 +56,9 @@ export const authOptions: NextAuthOptions = {
             }
 
             console.log('✅ User created successfully with ID:', userId)
-            // Store the generated UUID for use in other callbacks
             user.id = userId
           } else {
             console.log('✅ Existing user found:', existingUser.id)
-            // Use existing user's UUID
             user.id = existingUser.id
           }
 
@@ -71,7 +71,7 @@ export const authOptions: NextAuthOptions = {
       return true
     },
     
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       // Store user info in token on first sign in
       if (user) {
         console.log('🎟️ JWT callback - storing user ID:', user.id)
@@ -86,7 +86,10 @@ export const authOptions: NextAuthOptions = {
         console.log('🎫 Session callback - token:', token.email)
         
         if (session.user && token.email) {
-          // Get fresh user data from Supabase
+          // Use server client to bypass RLS
+          const supabase = createServerClient()
+          
+          // Get fresh user data from our users table
           const { data: userData, error } = await supabase
             .from('users')
             .select('*')
