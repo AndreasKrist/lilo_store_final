@@ -41,7 +41,7 @@ export default function NotFound() {
               deleted, or you entered the wrong URL.
             </p>
             
-            {/* Action Buttons */}
+            {/* Action Buttonss */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/">
                 <GlassButton variant="primary" className="w-full sm:w-auto">
