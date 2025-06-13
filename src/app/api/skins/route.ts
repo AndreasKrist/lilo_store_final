@@ -2,9 +2,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    // Use nextUrl.searchParams instead of new URL(request.url) to avoid dynamic server usage
+    const searchParams = request.nextUrl.searchParams
     
     // Parse query parameters
     const search = searchParams.get('search') || ''
