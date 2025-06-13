@@ -79,6 +79,21 @@ export function getWeaponTypeName(weaponType: WeaponType): string {
   return weaponData?.name || 'Unknown'
 }
 
+// Get weapon type emoji (for components that still need it)
+export function getWeaponEmoji(weaponType: WeaponType): string {
+  const weaponEmojis = {
+    pistol: '🔫',
+    rifle: '🔫', 
+    smg: '🔫',
+    shotgun: '💥',
+    sniper: '🎯',
+    heavy: '🔫',
+    knife: '🔪',
+    gloves: '🧤'
+  }
+  return weaponEmojis[weaponType] || '⚡'
+}
+
 // Validate Steam trade URL
 export function isValidSteamTradeUrl(url: string): boolean {
   const steamTradeUrlPattern = /^https:\/\/steamcommunity\.com\/tradeoffer\/new\/\?partner=\d+&token=[a-zA-Z0-9_-]+$/
