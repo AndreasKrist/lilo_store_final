@@ -15,6 +15,7 @@ export async function getSkinById(skinId: string) {
       .single()
 
     if (error) {
+      console.error('❌ Supabase error fetching skin by ID:', error)
       return null
     }
 
@@ -51,10 +52,15 @@ export async function searchItems(type: string, searchQuery: string = '', limit:
 
     const { data, error } = await query
 
-    return { data: data || [], error }
+    if (error) {
+      console.error(`❌ Supabase error searching ${type}s:`, error)
+      return { data: [], error: error.message }
+    }
+
+    return { data: data || [], error: null }
   } catch (error) {
     console.error(`❌ Error searching ${type}s:`, error)
-    return { data: [], error: error.message }
+    return { data: [], error: error instanceof Error ? error.message : 'Unknown error occurred' }
   }
 }
 
@@ -70,6 +76,11 @@ export async function getPopularSkins(limit: number = 6) {
       .eq('type', 'skin')
       .order('created_at', { ascending: false })
       .limit(limit)
+
+    if (error) {
+      console.error('❌ Supabase error fetching popular skins:', error)
+      return []
+    }
 
     return skins || []
   } catch (error) {
@@ -91,6 +102,11 @@ export async function getFeaturedSkins(limit: number = 3) {
       .in('rarity', ['covert', 'classified'])
       .order('created_at', { ascending: false })
       .limit(limit)
+
+    if (error) {
+      console.error('❌ Supabase error fetching featured skins:', error)
+      return []
+    }
 
     return skins || []
   } catch (error) {
