@@ -1,4 +1,4 @@
-// src/lib/utils.ts - Updated with correct CS2 system
+// src/lib/utils.ts - Fixed with compatible syntax for Vercel builds
 
 import { type ClassValue, clsx } from 'clsx'
 import { SkinCondition, SkinRarity, WeaponType } from '@/types'
@@ -71,12 +71,6 @@ export function getRarityBadgeColor(rarity: SkinRarity): string {
 export function getRarityTextColor(rarity: SkinRarity): string {
   const rarityData = SKIN_RARITIES[rarity]
   return rarityData?.textColor || 'text-gray-400'
-}
-
-// Get weapon type emoji
-export function getWeaponEmoji(weaponType: WeaponType): string {
-  const weaponData = WEAPON_TYPES[weaponType]
-  return weaponData?.emoji || '⚡'
 }
 
 // Get weapon type name
@@ -253,7 +247,7 @@ export function parseSkinName(skinName: string): {
   }
 }
 
-// Generate skin search keywords
+// Generate skin search keywords - FIXED: Compatible with older TypeScript targets
 export function generateSkinKeywords(skin: any): string[] {
   const keywords = []
   
@@ -286,7 +280,8 @@ export function generateSkinKeywords(skin: any): string[] {
   if (parsed.isStatTrak) keywords.push('stattrak')
   if (parsed.isSouvenir) keywords.push('souvenir')
   
-  return [...new Set(keywords)] // Remove duplicates
+  // FIXED: Remove duplicates using Array.from instead of spread operator
+  return Array.from(new Set(keywords))
 }
 
 // Debounce function for search
