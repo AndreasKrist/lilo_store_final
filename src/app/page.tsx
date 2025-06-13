@@ -105,7 +105,7 @@ const featuredSkins = [
     name: 'M4A4 | Asiimov',
     weapon_type: 'rifle' as const,
     rarity: 'covert' as const,
-    image_url: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a4_howl_light_png.png',
+    image_url: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4_asimov_light_png.png',
     description: 'More accurate but less damaging than its AK-47 counterpart, the M4A4 is the full-auto assault rifle of choice for CTs.',
     market_hash_name: 'M4A4 | Asiimov',
     created_at: new Date().toISOString(),
@@ -146,9 +146,9 @@ const featuredSkins = [
 ]
 
 const stats = [
-  { label: 'Total Traded', value: '$2.4M+', icon: TrendingUp },
-  { label: 'Happy Traders', value: '15,000+', icon: Users },
-  { label: 'Success Rate', value: '99.8%', icon: Shield },
+  { label: 'Total Traded', value: 'Rp37M +', icon: TrendingUp },
+  { label: 'Happy Traders', value: '25', icon: Users },
+  { label: 'Success Rate', value: '95%', icon: Shield },
   { label: 'Avg Response', value: '< 1 hour', icon: Clock },
 ]
 
@@ -165,7 +165,7 @@ const features = [
   },
   {
     title: 'Fast Support',
-    description: '24/7 customer support via Discord and tickets',
+    description: '24/7 customer support via Discord and Whatsapp',
     icon: Clock,
   },
   {
@@ -279,7 +279,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            Premium{' '}
+            Personalized{' '}
             <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
               CS2 Skins
             </span>
@@ -293,8 +293,8 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Experience the future of skin trading with our ticket-based system. 
-            Safe, secure, and professionally managed transactions.
+            Experience the flexible skin trading with our ticket-based system. 
+            Safe, secure, and personally managed transactions.
           </motion.p>
           
           {/* Search Bar */}
@@ -450,7 +450,7 @@ export default function HomePage() {
               
               <div className="space-y-4">
                 {[
-                  { step: 1, title: 'Submit Request', desc: 'Create a sell ticket with your skin details' },
+                  { step: 1, title: 'Submit Request', desc: 'Create a sell ticket with your bargain' },
                   { step: 2, title: 'Get Quote', desc: 'Our experts evaluate and provide pricing' },
                   { step: 3, title: 'Send & Get Paid', desc: 'Trade via Steam and receive instant payment' }
                 ].map((item) => (
@@ -533,7 +533,7 @@ export default function HomePage() {
           <GlassCard className="p-6 lg:p-12 text-center">
             <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-white">Ready to Start Trading?</h2>
             <p className="text-lg lg:text-xl text-gray-300 mb-6 lg:mb-8">
-              Join thousands of satisfied traders on the most trusted CS2 skin platform
+              Join with satisfied traders on the most private CS2 skin platform
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/browse">

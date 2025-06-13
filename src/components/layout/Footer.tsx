@@ -61,11 +61,11 @@ export default function Footer() {
                 </span>
               </div>
               <p className="text-gray-300 text-sm leading-relaxed">
-                The most trusted platform for CS2 skin trading with professional service and secure transactions.
+                The most personalized platform for CS2 skin trading with professional service and secure transactions.
               </p>
               <div className="mt-4 flex space-x-4">
                 <Link 
-                  href="/discord" 
+                  href="https://discord.gg/yF59qGnpgX" 
                   className="text-gray-400 hover:text-white transition-colors"
                   aria-label="Discord"
                 >
