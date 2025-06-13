@@ -5,11 +5,27 @@ import { motion } from 'framer-motion'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import { Skin } from '@/types'
-import { formatPrice, getRarityColor, getRarityBadgeColor, getWeaponEmoji } from '@/lib/utils'
-import { Eye } from 'lucide-react'
+import { formatPrice, getRarityColor, getRarityBadgeColor, getRarityTextColor, getWeaponTypeName } from '@/lib/utils'
+import { Eye, TrendingUp, TrendingDown, Minus, Star, Zap } from 'lucide-react'
 
 interface SkinCardProps {
-  skin: Skin
+  skin: Skin & {
+    skin_condition_prices?: Array<{
+      id: string
+      condition: string
+      condition_name: string
+      current_price: number
+      price_change_24h?: number
+    }>
+    price_range?: {
+      min: number
+      max: number
+      count: number
+    }
+    investment_rating?: 'excellent' | 'good' | 'fair' | 'poor'
+    popularity_score?: number
+    market_trend?: 'up' | 'down' | 'stable'
+  }
   onView?: (skin: Skin) => void
   showActions?: boolean
   compact?: boolean
@@ -22,17 +38,20 @@ export default function SkinCard({
   compact = false 
 }: SkinCardProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
-  // Get all available conditions and find highest price
-  const skinConditions = (skin as any).skin_condition_prices || []
+  // Get condition prices data
+  const skinConditions = skin.skin_condition_prices || []
+  const priceRange = skin.price_range
   
-  if (skinConditions.length === 0) {
+  if (skinConditions.length === 0 && !priceRange) {
     return null // Don't render if no price data
   }
 
-  // Get the highest price from all conditions
-  const prices = skinConditions.map((condition: any) => condition.current_price)
-  const highestPrice = Math.max(...prices)
+  // Calculate price display values
+  const minPrice = priceRange?.min || 0
+  const maxPrice = priceRange?.max || 0
+  const conditionCount = priceRange?.count || skinConditions.length
 
   const handleCardClick = () => {
     if (onView) {
@@ -48,8 +67,34 @@ export default function SkinCard({
     }
   }
 
+  // Get trend icon
+  const getTrendIcon = () => {
+    switch (skin.market_trend) {
+      case 'up':
+        return <TrendingUp className="w-3 h-3 text-green-400" />
+      case 'down':
+        return <TrendingDown className="w-3 h-3 text-red-400" />
+      default:
+        return <Minus className="w-3 h-3 text-gray-400" />
+    }
+  }
+
+  // Get investment rating color
+  const getInvestmentColor = () => {
+    switch (skin.investment_rating) {
+      case 'excellent':
+        return 'text-green-400'
+      case 'good':
+        return 'text-blue-400'
+      case 'fair':
+        return 'text-yellow-400'
+      default:
+        return 'text-gray-400'
+    }
+  }
+
   if (compact) {
-    // List view - horizontal layout
+    // List view - horizontal layout with IMPROVED spacing
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -59,33 +104,45 @@ export default function SkinCard({
         onMouseLeave={() => setIsHovered(false)}
       >
         <GlassCard 
-          className={`overflow-hidden border-l-4 ${getRarityColor(skin.rarity)} group cursor-pointer hover:scale-[1.02] transition-transform`}
+          className={`overflow-hidden border-l-4 ${getRarityColor(skin.rarity)} group cursor-pointer hover:scale-[1.01] transition-all duration-300`}
           onClick={handleCardClick}
         >
-          <div className="flex items-center p-3 lg:p-4 gap-3 lg:gap-4">
-            {/* Image Section */}
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-gray-800/20 to-gray-900/20 rounded-lg overflow-hidden flex-shrink-0">
-              {/* Skin Image */}
-              {(skin as any).image_url ? (
-                <img 
-                  src={(skin as any).image_url}
-                  alt={skin.name}
-                  className="absolute inset-0 w-full h-full object-contain p-1"
-                  onError={(e) => {
-                    // Fallback to weapon emoji if image fails to load
-                    e.currentTarget.style.display = 'none'
-                    const fallback = e.currentTarget.parentElement?.querySelector('.emoji-fallback') as HTMLElement
-                    if (fallback) fallback.style.display = 'flex'
-                  }}
-                />
-              ) : null}
+          {/* BIGGER: Better padding and spacing */}
+          <div className="flex items-center p-5 lg:p-7 gap-5 lg:gap-7">
+            {/* Image Section - BIGGER: Larger image */}
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 bg-gradient-to-br from-gray-800/20 to-gray-900/20 rounded-lg overflow-hidden flex-shrink-0">
+              {/* Rarity indicator */}
+              <div className="absolute top-1 left-1 w-3 h-3 rounded-full" style={{ backgroundColor: skin.rarity_color }} />
               
-              {/* Weapon Emoji Fallback */}
-              <div className="emoji-fallback absolute inset-0 flex items-center justify-center" style={{ display: (skin as any).image_url ? 'none' : 'flex' }}>
-                <div className="text-xl sm:text-2xl lg:text-3xl opacity-60">
-                  {getWeaponEmoji(skin.weapon_type)}
-                </div>
+              {/* Special badges */}
+              <div className="absolute top-1 right-1 flex flex-col gap-1">
+                {skin.stattrak && (
+                  <div className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded font-bold">
+                    ST
+                  </div>
+                )}
+                {skin.souvenir && (
+                  <div className="bg-yellow-500 text-white text-xs px-1.5 py-0.5 rounded font-bold">
+                    SV
+                  </div>
+                )}
               </div>
+
+              {/* Skin Image */}
+              {skin.image_url && !imageError ? (
+                <img 
+                  src={skin.image_url}
+                  alt={skin.name}
+                  className="absolute inset-0 w-full h-full object-contain p-2"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-2xl sm:text-3xl lg:text-4xl opacity-60 text-gray-400">
+                    ?
+                  </div>
+                </div>
+              )}
               
               {/* Shimmer effect on hover */}
               <motion.div
@@ -96,35 +153,63 @@ export default function SkinCard({
               />
             </div>
 
-            {/* Content Section */}
+            {/* Content Section - IMPROVED: Better spacing */}
             <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-bold text-sm sm:text-base lg:text-lg text-white truncate">
+                  {/* IMPROVED: Better title sizing and spacing */}
+                  <h3 className="font-bold text-base sm:text-lg lg:text-xl text-white truncate mb-2">
                     {skin.name}
                   </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`${getRarityBadgeColor(skin.rarity)} text-white text-xs px-2 py-1 rounded-full capitalize`}>
-                      {skin.rarity}
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className={`${getRarityBadgeColor(skin.rarity)} text-white text-xs px-2.5 py-1 rounded-full capitalize font-medium`}>
+                      {skin.rarity_name || skin.rarity}
                     </span>
-                    <span className="text-gray-400 text-xs capitalize">
-                      {skin.weapon_type}
+                    <span className="text-gray-400 text-sm capitalize">
+                      {getWeaponTypeName(skin.weapon_type)}
                     </span>
+                    {/* Popularity stars */}
+                    {skin.popularity_score && skin.popularity_score >= 7 && (
+                      <div className="flex items-center">
+                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                        <span className="text-xs text-yellow-400 ml-1">Hot</span>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-gray-400 text-xs mt-1">
-                    {skinConditions.length} condition{skinConditions.length > 1 ? 's' : ''} available
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-400 text-sm">
+                      {conditionCount} condition{conditionCount > 1 ? 's' : ''}
+                    </span>
+                    {/* Market trend */}
+                    <div className="flex items-center gap-1">
+                      {getTrendIcon()}
+                    </div>
+                    {/* Investment rating */}
+                    {skin.investment_rating && skin.investment_rating !== 'poor' && (
+                      <span className={`text-sm ${getInvestmentColor()}`}>
+                        {skin.investment_rating}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {/* Price and Actions */}
-                <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+                {/* Price and Actions - IMPROVED: Better spacing */}
+                <div className="flex items-center gap-3 lg:gap-4 flex-shrink-0">
                   <div className="text-right">
-                    <span className="text-lg lg:text-xl font-bold text-green-400 block">
-                      {formatPrice(highestPrice)}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      up to
-                    </span>
+                    {minPrice === maxPrice ? (
+                      <span className="text-xl lg:text-2xl font-bold text-green-400 block">
+                        {formatPrice(minPrice)}
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-xl lg:text-2xl font-bold text-green-400 block">
+                          {formatPrice(maxPrice)}
+                        </span>
+                        <span className="text-sm text-gray-400">
+                          from {formatPrice(minPrice)}
+                        </span>
+                      </>
+                    )}
                   </div>
                   
                   {showActions && (
@@ -132,9 +217,9 @@ export default function SkinCard({
                       size="sm"
                       variant="primary"
                       onClick={handleViewClick}
-                      className="text-xs px-2 lg:px-3 py-1.5 min-w-[50px] lg:min-w-[60px] opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="text-sm px-3 lg:px-4 py-2 min-w-[70px] lg:min-w-[80px] opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <Eye className="w-3 h-3 mr-1" />
+                      <Eye className="w-4 h-4 mr-1" />
                       View
                     </GlassButton>
                   )}
@@ -147,7 +232,7 @@ export default function SkinCard({
     )
   }
 
-  // Grid view - vertical layout
+  // Grid view - vertical layout with IMPROVED spacing
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -157,46 +242,62 @@ export default function SkinCard({
       onMouseLeave={() => setIsHovered(false)}
     >
       <GlassCard 
-        className={`overflow-hidden border-l-4 ${getRarityColor(skin.rarity)} group cursor-pointer h-full flex flex-col hover:scale-[1.02] transition-transform`}
+        className={`overflow-hidden border-l-4 ${getRarityColor(skin.rarity)} group cursor-pointer h-full flex flex-col hover:scale-[1.02] transition-all duration-300`}
         onClick={handleCardClick}
       >
-        {/* Image Section */}
-        <div className="relative h-32 sm:h-40 lg:h-48 bg-gradient-to-br from-gray-800/20 to-gray-900/20 overflow-hidden">
-          {/* Rarity Badge */}
-          <div className="absolute top-2 lg:top-3 left-2 lg:left-3 z-10">
-            <span className={`${getRarityBadgeColor(skin.rarity)} text-white text-xs px-2 py-1 rounded-full capitalize font-medium`}>
-              {skin.rarity}
+        {/* Image Section - BIGGER: Much taller image area */}
+        <div className="relative h-48 sm:h-56 lg:h-64 xl:h-72 bg-gradient-to-br from-gray-800/20 to-gray-900/20 overflow-hidden">
+          {/* Top badges */}
+          <div className="absolute top-3 left-3 z-10 flex gap-2">
+            <span className={`${getRarityBadgeColor(skin.rarity)} text-white text-xs px-2.5 py-1 rounded-full capitalize font-medium`}>
+              {skin.rarity_name || skin.rarity}
             </span>
+            {/* Popularity indicator */}
+            {skin.popularity_score && skin.popularity_score >= 8 && (
+              <div className="bg-yellow-500 text-white text-xs px-2.5 py-1 rounded-full flex items-center">
+                <Star className="w-3 h-3 mr-1 fill-current" />
+                Hot
+              </div>
+            )}
           </div>
 
-          {/* Conditions Count */}
-          <div className="absolute top-2 lg:top-3 right-2 lg:right-3 z-10">
-            <span className="bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-              {skinConditions.length} condition{skinConditions.length > 1 ? 's' : ''}
-            </span>
+          {/* Top right badges */}
+          <div className="absolute top-3 right-3 z-10 flex flex-col gap-1">
+            {conditionCount > 0 && (
+              <span className="bg-black/60 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm">
+                {conditionCount} condition{conditionCount > 1 ? 's' : ''}
+              </span>
+            )}
+            {/* Special attributes */}
+            <div className="flex gap-1">
+              {skin.stattrak && (
+                <div className="bg-orange-500 text-white text-xs px-2 py-1 rounded font-bold">
+                  StatTrak™
+                </div>
+              )}
+              {skin.souvenir && (
+                <div className="bg-yellow-500 text-white text-xs px-2 py-1 rounded font-bold">
+                  Souvenir
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Skin Image */}
-          {(skin as any).image_url ? (
+          {skin.image_url && !imageError ? (
             <img 
-              src={(skin as any).image_url}
+              src={skin.image_url}
               alt={skin.name}
-              className="absolute inset-0 w-full h-full object-contain p-2"
-              onError={(e) => {
-                // Fallback to weapon emoji if image fails to load
-                e.currentTarget.style.display = 'none'
-                const fallback = e.currentTarget.parentElement?.querySelector('.emoji-fallback') as HTMLElement
-                if (fallback) fallback.style.display = 'flex'
-              }}
+              className="absolute inset-0 w-full h-full object-contain p-3"
+              onError={() => setImageError(true)}
             />
-          ) : null}
-          
-          {/* Weapon Emoji Fallback */}
-          <div className="emoji-fallback absolute inset-0 flex items-center justify-center" style={{ display: (skin as any).image_url ? 'none' : 'flex' }}>
-            <div className="text-3xl sm:text-4xl lg:text-6xl opacity-60">
-              {getWeaponEmoji(skin.weapon_type)}
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-4xl sm:text-5xl lg:text-6xl opacity-60 text-gray-400">
+                ?
+              </div>
             </div>
-          </div>
+          )}
 
           {/* View Button Overlay */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
@@ -204,7 +305,7 @@ export default function SkinCard({
               size="sm"
               variant="primary"
               onClick={handleViewClick}
-              className="text-sm px-3 lg:px-4 py-2"
+              className="text-sm px-4 lg:px-6 py-2.5"
             >
               <Eye className="w-4 h-4 mr-2" />
               View Details
@@ -219,41 +320,75 @@ export default function SkinCard({
             transition={{ duration: 0.8 }}
           />
 
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          {/* Bottom gradient overlay */}
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/40 to-transparent" />
         </div>
 
-        {/* Content Section */}
-        <div className="p-3 sm:p-4 lg:p-6 flex-1 flex flex-col">
+        {/* Content Section - BIGGER: More generous padding and spacing */}
+        <div className="p-5 sm:p-6 lg:p-8 flex-1 flex flex-col">
           <div className="flex-1">
-            <h3 className="font-bold text-sm sm:text-base lg:text-lg text-white line-clamp-2 mb-2">
+            {/* IMPROVED: Better title spacing */}
+            <h3 className="font-bold text-sm sm:text-base lg:text-lg text-white line-clamp-2 mb-3">
               {skin.name}
             </h3>
-            <p className="text-gray-400 text-xs lg:text-sm mb-3 capitalize">
-              {skin.weapon_type}
-            </p>
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-gray-400 text-sm lg:text-base capitalize">
+                {getWeaponTypeName(skin.weapon_type)}
+              </span>
+              {/* Market trend indicator */}
+              <div className="flex items-center gap-1">
+                {getTrendIcon()}
+                <span className="text-xs text-gray-400">24h</span>
+              </div>
+            </div>
           </div>
           
-          {/* Price Section */}
-          <div className="mb-3 lg:mb-4">
-            <span className="text-lg sm:text-xl lg:text-2xl font-bold text-green-400 block">
-              {formatPrice(highestPrice)}
-            </span>
-            <span className="text-xs text-gray-400">
-              up to • {skinConditions.length} condition{skinConditions.length > 1 ? 's' : ''}
-            </span>
+          {/* Price Section - IMPROVED: Better spacing */}
+          <div className="mb-4 lg:mb-5">
+            {minPrice === maxPrice ? (
+              <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-400 block">
+                {formatPrice(minPrice)}
+              </span>
+            ) : (
+              <>
+                <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-400 block">
+                  {formatPrice(maxPrice)}
+                </span>
+                <span className="text-sm text-gray-400 mt-1 block">
+                  from {formatPrice(minPrice)} • {conditionCount} condition{conditionCount > 1 ? 's' : ''}
+                </span>
+              </>
+            )}
           </div>
 
-          {/* Click to view hint */}
-          <div className="text-center text-xs text-gray-400 mt-auto">
-            Click to view conditions & buy/sell
+          {/* Investment rating and popularity - IMPROVED: Better spacing */}
+          <div className="flex items-center justify-between mb-4">
+            {skin.investment_rating && (
+              <span className={`text-sm ${getInvestmentColor()} flex items-center`}>
+                <Zap className="w-3 h-3 mr-1" />
+                {skin.investment_rating} investment
+              </span>
+            )}
+            {skin.popularity_score && (
+              <div className="flex items-center text-sm text-gray-400">
+                <Star className="w-3 h-3 mr-1" />
+                {skin.popularity_score}/10
+              </div>
+            )}
           </div>
 
-          {/* Additional info */}
-          <div className="mt-3 pt-3 border-t border-white/10 hidden sm:block">
-            <div className="flex items-center justify-between text-xs text-gray-400">
-              <span className="capitalize">{skin.rarity} rarity</span>
-              <span>Updated recently</span>
+          {/* Click hint */}
+          <div className="text-center text-xs text-gray-400 mt-auto opacity-0 group-hover:opacity-100 transition-opacity">
+            Click to view conditions & trade
+          </div>
+
+          {/* Additional metadata - IMPROVED: Better spacing */}
+          <div className="mt-4 pt-3 border-t border-white/10 hidden sm:block">
+            <div className="flex items-center justify-between text-sm text-gray-400">
+              <span className={`capitalize ${getRarityTextColor(skin.rarity)}`}>
+                {skin.rarity_name || skin.rarity}
+              </span>
+              <span>CS2 Official</span>
             </div>
           </div>
         </div>
@@ -262,24 +397,25 @@ export default function SkinCard({
   )
 }
 
-// Loading skeleton for SkinCard
+// Loading skeleton for SkinCard with enhanced placeholder
 export function SkinCardSkeleton({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
       <GlassCard className="overflow-hidden animate-pulse">
-        <div className="flex items-center p-3 lg:p-4 gap-3 lg:gap-4">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white/10 rounded-lg flex-shrink-0" />
-          <div className="flex-1 space-y-2">
-            <div className="h-4 bg-white/10 rounded w-3/4" />
+        {/* BIGGER: Better skeleton spacing */}
+        <div className="flex items-center p-5 lg:p-7 gap-5 lg:gap-7">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 bg-white/10 rounded-lg flex-shrink-0" />
+          <div className="flex-1 space-y-3">
+            <div className="h-5 bg-white/10 rounded w-3/4" />
             <div className="flex gap-2">
-              <div className="h-5 bg-white/10 rounded w-16" />
-              <div className="h-5 bg-white/10 rounded w-16" />
+              <div className="h-6 bg-white/10 rounded w-20" />
+              <div className="h-6 bg-white/10 rounded w-16" />
             </div>
-            <div className="h-3 bg-white/10 rounded w-1/2" />
+            <div className="h-4 bg-white/10 rounded w-1/2" />
           </div>
-          <div className="flex flex-col gap-2">
-            <div className="h-6 bg-white/10 rounded w-20" />
-            <div className="h-8 bg-white/10 rounded w-16" />
+          <div className="flex flex-col gap-3">
+            <div className="h-7 bg-white/10 rounded w-24" />
+            <div className="h-9 bg-white/10 rounded w-20" />
           </div>
         </div>
       </GlassCard>
@@ -288,14 +424,27 @@ export function SkinCardSkeleton({ compact = false }: { compact?: boolean }) {
 
   return (
     <GlassCard className="overflow-hidden animate-pulse h-full flex flex-col">
-      <div className="h-32 sm:h-40 lg:h-48 bg-white/10" />
-      <div className="p-3 sm:p-4 lg:p-6 flex-1 flex flex-col space-y-3">
-        <div className="space-y-2 flex-1">
-          <div className="h-4 bg-white/10 rounded w-3/4" />
-          <div className="h-3 bg-white/10 rounded w-1/2" />
+      {/* BIGGER: Taller skeleton image area */}
+      <div className="h-48 sm:h-56 lg:h-64 xl:h-72 bg-white/10 relative">
+        <div className="absolute top-3 left-3">
+          <div className="h-6 bg-white/20 rounded-full w-24" />
         </div>
-        <div className="h-6 bg-white/10 rounded w-1/3" />
-        <div className="h-3 bg-white/10 rounded w-full" />
+        <div className="absolute top-3 right-3">
+          <div className="h-5 bg-white/20 rounded-full w-20" />
+        </div>
+      </div>
+      {/* BIGGER: Better skeleton content spacing */}
+      <div className="p-5 sm:p-6 lg:p-8 flex-1 flex flex-col space-y-4">
+        <div className="space-y-3 flex-1">
+          <div className="h-5 bg-white/10 rounded w-3/4" />
+          <div className="h-4 bg-white/10 rounded w-1/2" />
+        </div>
+        <div className="h-8 bg-white/10 rounded w-1/3" />
+        <div className="flex justify-between">
+          <div className="h-4 bg-white/10 rounded w-1/4" />
+          <div className="h-4 bg-white/10 rounded w-1/4" />
+        </div>
+        <div className="h-4 bg-white/10 rounded w-full" />
       </div>
     </GlassCard>
   )

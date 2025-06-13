@@ -1,5 +1,8 @@
+// src/lib/utils.ts - Updated with correct CS2 system
+
 import { type ClassValue, clsx } from 'clsx'
 import { SkinCondition, SkinRarity, WeaponType } from '@/types'
+import { SKIN_RARITIES, WEAPON_TYPES, SKIN_CONDITIONS, RARITY_HIERARCHY } from '@/lib/constants'
 
 // Utility function to combine class names
 export function cn(...inputs: ClassValue[]) {
@@ -41,44 +44,45 @@ export function getRelativeTime(date: string | Date): string {
   return formatDate(date)
 }
 
-// Get rarity color classes
+// Get CS2 rarity color classes
 export function getRarityColor(rarity: SkinRarity): string {
+  const rarityData = SKIN_RARITIES[rarity]
+  if (!rarityData) return 'border-gray-500 bg-gray-500/10'
+  
+  return rarityData.borderColor + ' ' + rarityData.bgColor
+}
+
+// Get CS2 rarity badge color
+export function getRarityBadgeColor(rarity: SkinRarity): string {
   const rarityColors = {
-    covert: 'border-red-500 bg-red-500/10',
-    classified: 'border-purple-500 bg-purple-500/10',
-    restricted: 'border-blue-500 bg-blue-500/10',
-    milspec: 'border-indigo-500 bg-indigo-500/10',
-    industrial: 'border-gray-500 bg-gray-500/10',
-    consumer: 'border-gray-400 bg-gray-400/10'
+    consumer: 'bg-gray-500',
+    industrial: 'bg-blue-600', 
+    milspec: 'bg-indigo-500',
+    restricted: 'bg-purple-500',
+    classified: 'bg-pink-500',
+    covert: 'bg-red-500',
+    contraband: 'bg-orange-500',
+    extraordinary: 'bg-yellow-500'
   }
   return rarityColors[rarity] || rarityColors.consumer
 }
 
-// Get rarity badge color
-export function getRarityBadgeColor(rarity: SkinRarity): string {
-  const rarityBadgeColors = {
-    covert: 'bg-red-500',
-    classified: 'bg-purple-500',
-    restricted: 'bg-blue-500',
-    milspec: 'bg-indigo-500',
-    industrial: 'bg-gray-500',
-    consumer: 'bg-gray-400'
-  }
-  return rarityBadgeColors[rarity] || rarityBadgeColors.consumer
+// Get CS2 rarity text color
+export function getRarityTextColor(rarity: SkinRarity): string {
+  const rarityData = SKIN_RARITIES[rarity]
+  return rarityData?.textColor || 'text-gray-400'
 }
 
 // Get weapon type emoji
 export function getWeaponEmoji(weaponType: WeaponType): string {
-  const weaponEmojis = {
-    rifle: '🔫',
-    pistol: '🔫',
-    sniper: '🎯',
-    smg: '🔫',
-    shotgun: '🔫',
-    knife: '🔪',
-    gloves: '🧤'
-  }
-  return weaponEmojis[weaponType] || '⚡'
+  const weaponData = WEAPON_TYPES[weaponType]
+  return weaponData?.emoji || '⚡'
+}
+
+// Get weapon type name
+export function getWeaponTypeName(weaponType: WeaponType): string {
+  const weaponData = WEAPON_TYPES[weaponType]
+  return weaponData?.name || 'Unknown'
 }
 
 // Validate Steam trade URL
@@ -106,26 +110,183 @@ export function getFloatMiddle(floatRange: string): number {
 
 // Get condition name from condition code
 export function getConditionName(condition: SkinCondition): string {
-  const conditionNames = {
-    fn: 'Factory New',
-    mw: 'Minimal Wear',
-    ft: 'Field-Tested',
-    ww: 'Well-Worn',
-    bs: 'Battle-Scarred'
-  }
-  return conditionNames[condition]
+  const conditionData = SKIN_CONDITIONS[condition]
+  return conditionData?.name || 'Unknown'
 }
 
 // Get condition color
 export function getConditionColor(condition: SkinCondition): string {
-  const conditionColors = {
-    fn: 'text-green-400',
-    mw: 'text-blue-400',
-    ft: 'text-yellow-400',
-    ww: 'text-orange-400',
-    bs: 'text-red-400'
+  const conditionData = SKIN_CONDITIONS[condition]
+  return conditionData?.color || 'text-gray-400'
+}
+
+// Get condition float range
+export function getConditionFloatRange(condition: SkinCondition): string {
+  const conditionData = SKIN_CONDITIONS[condition]
+  return conditionData?.floatRange || '0.00 - 1.00'
+}
+
+// Get rarity name
+export function getRarityName(rarity: SkinRarity): string {
+  const rarityData = SKIN_RARITIES[rarity]
+  return rarityData?.name || 'Unknown'
+}
+
+// Get rarity probability
+export function getRarityProbability(rarity: SkinRarity): string {
+  const rarityData = SKIN_RARITIES[rarity]
+  return rarityData?.probability || 'Unknown'
+}
+
+// Sort skins by rarity (rare to common or vice versa)
+export function sortByRarity(skins: any[], ascending: boolean = false): any[] {
+  return skins.sort((a, b) => {
+    const aRarity = RARITY_HIERARCHY[a.rarity as SkinRarity] || 0
+    const bRarity = RARITY_HIERARCHY[b.rarity as SkinRarity] || 0
+    return ascending ? aRarity - bRarity : bRarity - aRarity
+  })
+}
+
+// Check if skin is StatTrak
+export function isStatTrak(skinName: string): boolean {
+  return skinName.toLowerCase().includes('stattrak')
+}
+
+// Check if skin is Souvenir
+export function isSouvenir(skinName: string): boolean {
+  return skinName.toLowerCase().includes('souvenir')
+}
+
+// Get skin category based on weapon type
+export function getSkinCategory(weaponType: WeaponType): string {
+  const weaponData = WEAPON_TYPES[weaponType]
+  return weaponData?.category || 'Unknown'
+}
+
+// Calculate estimated market value based on condition and rarity
+export function estimateMarketValue(basePrice: number, rarity: SkinRarity, condition: SkinCondition, isStatTrak: boolean = false, isSouvenir: boolean = false): number {
+  let price = basePrice
+
+  // Condition multipliers (based on CS2 market data)
+  const conditionMultipliers = {
+    fn: 1.0,
+    mw: 0.85,
+    ft: 0.70,
+    ww: 0.55,
+    bs: 0.40
   }
-  return conditionColors[condition] || 'text-gray-400'
+
+  // Rarity multipliers
+  const rarityMultipliers = {
+    consumer: 1.0,
+    industrial: 1.2,
+    milspec: 1.5,
+    restricted: 2.0,
+    classified: 3.5,
+    covert: 6.0,
+    contraband: 50.0,
+    extraordinary: 8.0
+  }
+
+  price *= conditionMultipliers[condition] || 1.0
+  price *= rarityMultipliers[rarity] || 1.0
+
+  if (isStatTrak) price *= 1.2
+  if (isSouvenir) price *= 0.8
+
+  return Math.round(price * 100) / 100
+}
+
+// Check if float is valid for condition
+export function isValidFloat(floatValue: number, condition: SkinCondition): boolean {
+  const ranges = {
+    fn: { min: 0.00, max: 0.07 },
+    mw: { min: 0.07, max: 0.15 },
+    ft: { min: 0.15, max: 0.38 },
+    ww: { min: 0.38, max: 0.45 },
+    bs: { min: 0.45, max: 1.00 }
+  }
+
+  const range = ranges[condition]
+  return floatValue >= range.min && floatValue <= range.max
+}
+
+// Get condition from float value
+export function getConditionFromFloat(floatValue: number): SkinCondition {
+  if (floatValue >= 0.00 && floatValue < 0.07) return 'fn'
+  if (floatValue >= 0.07 && floatValue < 0.15) return 'mw'
+  if (floatValue >= 0.15 && floatValue < 0.38) return 'ft'
+  if (floatValue >= 0.38 && floatValue < 0.45) return 'ww'
+  return 'bs'
+}
+
+// Format float value for display
+export function formatFloat(floatValue: number): string {
+  return floatValue.toFixed(8)
+}
+
+// Parse CS2 skin name components
+export function parseSkinName(skinName: string): {
+  weapon: string
+  skinName: string
+  isStatTrak: boolean
+  isSouvenir: boolean
+} {
+  let cleanName = skinName.trim()
+  
+  const isStatTrak = cleanName.toLowerCase().includes('stattrak™')
+  const isSouvenir = cleanName.toLowerCase().includes('souvenir')
+  
+  // Remove prefixes
+  cleanName = cleanName.replace(/^(StatTrak™|Souvenir)\s+/i, '')
+  
+  // Split weapon and skin name
+  const parts = cleanName.split(' | ')
+  const weapon = parts[0] || ''
+  const skin = parts[1] || ''
+  
+  return {
+    weapon: weapon.trim(),
+    skinName: skin.trim(),
+    isStatTrak,
+    isSouvenir
+  }
+}
+
+// Generate skin search keywords
+export function generateSkinKeywords(skin: any): string[] {
+  const keywords = []
+  
+  // Basic info
+  keywords.push(skin.name.toLowerCase())
+  keywords.push(skin.weapon_type)
+  keywords.push(skin.rarity)
+  
+  // Parse skin name
+  const parsed = parseSkinName(skin.name)
+  keywords.push(parsed.weapon.toLowerCase())
+  keywords.push(parsed.skinName.toLowerCase())
+  
+  // Weapon name variations
+  if (skin.weapon_name) {
+    keywords.push(skin.weapon_name.toLowerCase())
+  }
+  
+  // Collection
+  if (skin.collections && skin.collections.length > 0) {
+    keywords.push(...skin.collections.map((c: string) => c.toLowerCase()))
+  }
+  
+  // Pattern name
+  if (skin.pattern_name) {
+    keywords.push(skin.pattern_name.toLowerCase())
+  }
+  
+  // Special attributes
+  if (parsed.isStatTrak) keywords.push('stattrak')
+  if (parsed.isSouvenir) keywords.push('souvenir')
+  
+  return [...new Set(keywords)] // Remove duplicates
 }
 
 // Debounce function for search
@@ -162,4 +323,67 @@ export function createSlug(text: string): string {
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '')
+}
+
+// Validate CS2 skin data
+export function validateSkinData(skin: any): boolean {
+  if (!skin.name || !skin.weapon_type || !skin.rarity) return false
+  if (!Object.keys(WEAPON_TYPES).includes(skin.weapon_type)) return false
+  if (!Object.keys(SKIN_RARITIES).includes(skin.rarity)) return false
+  return true
+}
+
+// Calculate skin profit margin for trading
+export function calculateProfitMargin(buyPrice: number, sellPrice: number): number {
+  if (buyPrice === 0) return 0
+  return ((sellPrice - buyPrice) / buyPrice) * 100
+}
+
+// Get skin investment recommendation
+export function getSkinInvestmentRating(skin: any): 'buy' | 'hold' | 'sell' | 'avoid' {
+  // This is a simplified example - in reality you'd use market data, trends, etc.
+  const rarity = skin.rarity as SkinRarity
+  const rarityScore = RARITY_HIERARCHY[rarity] || 0
+  
+  if (rarityScore >= 6) return 'buy' // Covert, Contraband, Extraordinary
+  if (rarityScore >= 4) return 'hold' // Restricted, Classified
+  if (rarityScore >= 2) return 'sell' // Industrial, Mil-Spec
+  return 'avoid' // Consumer
+}
+
+// Format large numbers (1000 -> 1K, 1000000 -> 1M)
+export function formatLargeNumber(num: number): string {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
+  return num.toString()
+}
+
+// Check if skin is a knife
+export function isKnife(weaponType: WeaponType): boolean {
+  return weaponType === 'knife'
+}
+
+// Check if skin is gloves
+export function isGloves(weaponType: WeaponType): boolean {
+  return weaponType === 'gloves'
+}
+
+// Get trading fees (Steam takes 15% total)
+export function calculateTradingFees(price: number): {
+  steamFee: number
+  publisherFee: number
+  total: number
+  netReceived: number
+} {
+  const steamFee = Math.floor(price * 0.05 * 100) / 100 // 5%
+  const publisherFee = Math.floor(price * 0.10 * 100) / 100 // 10%
+  const total = steamFee + publisherFee
+  const netReceived = price - total
+  
+  return {
+    steamFee,
+    publisherFee,
+    total,
+    netReceived
+  }
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Filter, Grid, List } from 'lucide-react'
+import { Filter, Grid, List, Star, TrendingUp } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import SearchBar from '@/components/ui/SearchBar'
@@ -10,7 +10,32 @@ import SkinCard, { SkinCardSkeleton } from '@/components/skins/SkinCard'
 import SkinDetailModal from '@/components/ui/SkinDetailModal'
 import BuySellModal from '@/components/ui/BuySellModal'
 import { useSkins } from '@/hooks/useSkins'
-import { SkinFilters, WeaponType, SkinRarity, WEAPON_TYPES, SKIN_RARITIES, Skin } from '@/types'
+import { SkinFilters, WeaponType, SkinRarity, Skin } from '@/types'
+import { PRICE_RANGES, QUICK_FILTERS } from '@/lib/constants'
+
+// FIXED: Simple weapon types without emojis
+const WEAPON_TYPES = {
+  pistol: { name: 'Pistols' },
+  rifle: { name: 'Rifles' },
+  smg: { name: 'SMGs' },
+  shotgun: { name: 'Shotguns' },
+  sniper: { name: 'Sniper Rifles' },
+  heavy: { name: 'Heavy' },
+  knife: { name: 'Knives' },
+  gloves: { name: 'Gloves' }
+}
+
+// FIXED: Proper rarity data  
+const SKIN_RARITIES = {
+  consumer: { name: 'Consumer Grade', color: '#B0C3D9' },
+  industrial: { name: 'Industrial Grade', color: '#5E98D9' },
+  milspec: { name: 'Mil-Spec Grade', color: '#4B69FF' },
+  restricted: { name: 'Restricted', color: '#8847FF' },
+  classified: { name: 'Classified', color: '#D32CE6' },
+  covert: { name: 'Covert', color: '#EB4B4B' },
+  contraband: { name: 'Contraband', color: '#E4AE39' },
+  extraordinary: { name: 'Extraordinary', color: '#FFEAA7' }
+}
 
 interface BuySellModalState {
   isOpen: boolean
@@ -70,14 +95,12 @@ export default function BrowsePage() {
     const skin = skins.find(s => s.id === skinId) || selectedSkin
     if (!skin) return
 
-    // Find the condition data
     const conditionData = (skin as any).skin_condition_prices?.find(
       (p: any) => p.condition === condition
     ) || (skin as any).skin_condition_prices?.[0]
 
     if (!conditionData) return
 
-    // Close detail modal first
     setShowDetailModal(false)
 
     setBuySellModal({
@@ -94,14 +117,12 @@ export default function BrowsePage() {
     const skin = skins.find(s => s.id === skinId) || selectedSkin
     if (!skin) return
 
-    // Find the condition data
     const conditionData = (skin as any).skin_condition_prices?.find(
       (p: any) => p.condition === condition
     ) || (skin as any).skin_condition_prices?.[0]
 
     if (!conditionData) return
 
-    // Close detail modal first
     setShowDetailModal(false)
 
     setBuySellModal({
@@ -109,13 +130,24 @@ export default function BrowsePage() {
       type: 'sell',
       skinName: skin.name,
       condition: conditionData.condition_name,
-      price: conditionData.current_price * 0.85, // Offer 85% for selling
+      price: conditionData.current_price * 0.85,
       skinId: skin.id
     })
   }
 
   const closeBuySellModal = () => {
     setBuySellModal(prev => ({ ...prev, isOpen: false }))
+  }
+
+  const handleQuickFilter = (filter: string) => {
+    handleSearch(filter)
+  }
+
+  const handlePriceRangeSelect = (range: { min: number; max: number | null }) => {
+    handleFilterChange({ 
+      price_min: range.min, 
+      price_max: range.max || undefined 
+    })
   }
 
   return (
@@ -138,6 +170,23 @@ export default function BrowsePage() {
           />
         </div>
 
+        {/* Quick Filters */}
+        <div className="mb-6">
+          <h3 className="text-sm font-medium text-white mb-3">Quick Filters</h3>
+          <div className="flex flex-wrap gap-2">
+            {QUICK_FILTERS.map((filter) => (
+              <GlassButton
+                key={filter}
+                size="sm"
+                onClick={() => handleQuickFilter(filter)}
+                className="text-xs"
+              >
+                {filter}
+              </GlassButton>
+            ))}
+          </div>
+        </div>
+
         {/* Filters and Controls */}
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Sidebar Filters */}
@@ -155,11 +204,11 @@ export default function BrowsePage() {
               </div>
 
               <div className="space-y-4 lg:space-y-6">
-                {/* Weapon Types */}
+                {/* FIXED: Weapon Types with proper data */}
                 <div>
                   <h3 className="font-semibold text-white mb-3 text-sm lg:text-base">Weapon Type</h3>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {Object.entries(WEAPON_TYPES).map(([type, label]) => (
+                    {Object.entries(WEAPON_TYPES).map(([type, data]) => (
                       <label key={type} className="flex items-center space-x-2 lg:space-x-3 cursor-pointer">
                         <input
                           type="checkbox"
@@ -173,17 +222,19 @@ export default function BrowsePage() {
                           }}
                           className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500"
                         />
-                        <span className="text-xs lg:text-sm text-gray-300">{label}</span>
+                        <span className="text-xs lg:text-sm text-gray-300">
+                          {data.name}
+                        </span>
                       </label>
                     ))}
                   </div>
                 </div>
 
-                {/* Rarity */}
+                {/* FIXED: CS2 Rarity System with proper data */}
                 <div>
                   <h3 className="font-semibold text-white mb-3 text-sm lg:text-base">Rarity</h3>
                   <div className="space-y-2">
-                    {Object.entries(SKIN_RARITIES).map(([rarity, { name, color }]) => (
+                    {Object.entries(SKIN_RARITIES).map(([rarity, data]) => (
                       <label key={rarity} className="flex items-center space-x-2 lg:space-x-3 cursor-pointer">
                         <input
                           type="checkbox"
@@ -197,7 +248,15 @@ export default function BrowsePage() {
                           }}
                           className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500"
                         />
-                        <span className={`text-xs lg:text-sm text-${color}-400`}>{name}</span>
+                        <div className="flex items-center space-x-2">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: data.color }}
+                          />
+                          <span className="text-xs lg:text-sm text-white">
+                            {data.name}
+                          </span>
+                        </div>
                       </label>
                     ))}
                   </div>
@@ -206,6 +265,21 @@ export default function BrowsePage() {
                 {/* Price Range */}
                 <div>
                   <h3 className="font-semibold text-white mb-3 text-sm lg:text-base">Price Range</h3>
+                  
+                  {/* Quick Price Ranges */}
+                  <div className="space-y-2 mb-4">
+                    {PRICE_RANGES.map((range, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handlePriceRangeSelect(range)}
+                        className="block w-full text-left text-xs text-gray-300 hover:text-white p-2 rounded hover:bg-white/5 transition-colors"
+                      >
+                        {range.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Custom Price Range */}
                   <div className="space-y-3">
                     <div>
                       <label className="block text-xs text-gray-400 mb-1">Min Price ($)</label>
@@ -223,7 +297,7 @@ export default function BrowsePage() {
                       <label className="block text-xs text-gray-400 mb-1">Max Price ($)</label>
                       <input
                         type="number"
-                        placeholder="1000"
+                        placeholder="No limit"
                         value={filters.price_max || ''}
                         onChange={(e) => handleFilterChange({ 
                           price_max: e.target.value ? parseFloat(e.target.value) : undefined 
@@ -233,6 +307,75 @@ export default function BrowsePage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Special Attributes */}
+                <div>
+                  <h3 className="font-semibold text-white mb-3 text-sm lg:text-base">Special</h3>
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 lg:space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.stattrak || false}
+                        onChange={(e) => handleFilterChange({ stattrak: e.target.checked })}
+                        className="w-3 h-3 lg:w-4 lg:h-4 text-orange-600 bg-white/10 border-white/20 rounded focus:ring-orange-500"
+                      />
+                      <span className="text-xs lg:text-sm text-orange-400">
+                        StatTrak™ Only
+                      </span>
+                    </label>
+                    
+                    <label className="flex items-center space-x-2 lg:space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.souvenir || false}
+                        onChange={(e) => handleFilterChange({ souvenir: e.target.checked })}
+                        className="w-3 h-3 lg:w-4 lg:h-4 text-yellow-600 bg-white/10 border-white/20 rounded focus:ring-yellow-500"
+                      />
+                      <span className="text-xs lg:text-sm text-yellow-400">
+                        Souvenir Only
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Active Filters Summary */}
+                {(filters.weapon_types?.length || filters.rarities?.length || filters.price_min || filters.price_max || filters.stattrak || filters.souvenir) && (
+                  <div className="pt-4 border-t border-white/10">
+                    <h4 className="font-semibold text-white mb-2 text-sm">Active Filters</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {filters.weapon_types?.map(type => (
+                        <span key={type} className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                          {WEAPON_TYPES[type].name}
+                        </span>
+                      ))}
+                      {filters.rarities?.map(rarity => (
+                        <span key={rarity} className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">
+                          {SKIN_RARITIES[rarity].name}
+                        </span>
+                      ))}
+                      {filters.price_min && (
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
+                          Min: ${filters.price_min}
+                        </span>
+                      )}
+                      {filters.price_max && (
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
+                          Max: ${filters.price_max}
+                        </span>
+                      )}
+                      {filters.stattrak && (
+                        <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded">
+                          StatTrak™
+                        </span>
+                      )}
+                      {filters.souvenir && (
+                        <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+                          Souvenir
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </GlassCard>
           </div>
@@ -254,6 +397,18 @@ export default function BrowsePage() {
                 <span className="text-gray-300 text-sm whitespace-nowrap">
                   {pagination.total} skins found
                 </span>
+
+                {/* Featured/Popular toggles */}
+                <div className="hidden sm:flex items-center gap-2">
+                  <GlassButton size="sm" className="text-xs">
+                    <Star className="w-3 h-3 mr-1" />
+                    Featured
+                  </GlassButton>
+                  <GlassButton size="sm" className="text-xs">
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                    Popular
+                  </GlassButton>
+                </div>
               </div>
 
               <div className="flex items-center gap-2 lg:gap-4 w-full sm:w-auto">
@@ -267,6 +422,8 @@ export default function BrowsePage() {
                   <option value="name_desc">Name Z-A</option>
                   <option value="price_asc">Price Low-High</option>
                   <option value="price_desc">Price High-Low</option>
+                  <option value="rarity_desc">Rarity: Rare First</option>
+                  <option value="rarity_asc">Rarity: Common First</option>
                   <option value="newest">Newest First</option>
                 </select>
 
@@ -293,8 +450,8 @@ export default function BrowsePage() {
             {/* Results */}
             {isLoading ? (
               <div className={`grid ${viewMode === 'grid' 
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                : 'grid-cols-1'} gap-4 lg:gap-6`}
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3' 
+                : 'grid-cols-1'} gap-8 lg:gap-10`}
               >
                 {Array.from({ length: 8 }).map((_, i) => (
                   <SkinCardSkeleton key={i} compact={viewMode === 'list'} />
@@ -302,9 +459,10 @@ export default function BrowsePage() {
               </div>
             ) : skins.length > 0 ? (
               <>
+                {/* FIXED: Better grid spacing and BIGGER containers */}
                 <div className={`grid ${viewMode === 'grid' 
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                  : 'grid-cols-1'} gap-4 lg:gap-6`}
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3' 
+                  : 'grid-cols-1'} gap-8 lg:gap-10`}
                 >
                   {skins.map((skin) => (
                     <SkinCard
@@ -359,8 +517,19 @@ export default function BrowsePage() {
                 <div className="text-4xl lg:text-6xl mb-4">🔍</div>
                 <h3 className="text-xl font-bold text-white mb-2">No skins found</h3>
                 <p className="text-gray-300 mb-6">
-                  Try adjusting your filters or search terms
+                  Try adjusting your filters or search terms. Here are some suggestions:
                 </p>
+                <div className="flex flex-wrap gap-2 justify-center mb-6">
+                  {QUICK_FILTERS.slice(0, 4).map((filter) => (
+                    <GlassButton
+                      key={filter}
+                      size="sm"
+                      onClick={() => handleQuickFilter(filter)}
+                    >
+                      {filter}
+                    </GlassButton>
+                  ))}
+                </div>
                 <GlassButton onClick={clearFilters}>
                   Clear All Filters
                 </GlassButton>
