@@ -345,11 +345,9 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
             {featuredSkins.map((skin, index) => {
-              // Calculate price range from all conditions
+              // Get the highest price from all conditions
               const prices = skin.skin_condition_prices.map(condition => condition.current_price)
-              const minPrice = Math.min(...prices)
-              const maxPrice = Math.max(...prices)
-              const priceRange = minPrice === maxPrice ? formatPrice(minPrice) : `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`
+              const highestPrice = Math.max(...prices)
               
               return (
                 <motion.div
@@ -363,19 +361,19 @@ export default function HomePage() {
                     onClick={() => handleViewSkin(skin)}
                   >
                     <div className="relative h-32 sm:h-40 lg:h-48 bg-gradient-to-br from-gray-800/20 to-gray-900/20 overflow-hidden">
-                      <div className="absolute top-3 left-3">
+                      <div className="absolute top-2 lg:top-3 left-2 lg:left-3">
                         <span className={`${getRarityBadgeColor(skin.rarity)} text-white text-xs px-2 py-1 rounded-full capitalize`}>
                           {skin.rarity}
                         </span>
                       </div>
-                      <div className="absolute top-3 right-3">
+                      <div className="absolute top-2 lg:top-3 right-2 lg:right-3">
                         <span className="bg-black/50 text-white text-xs px-2 py-1 rounded-full">
                           {skin.skin_condition_prices.length} conditions
                         </span>
                       </div>
                       
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-4xl lg:text-6xl opacity-50">{getWeaponEmoji(skin.weapon_type)}</div>
+                        <div className="text-3xl sm:text-4xl lg:text-6xl opacity-50">{getWeaponEmoji(skin.weapon_type)}</div>
                       </div>
 
                       {/* View Button Overlay */}
@@ -383,7 +381,7 @@ export default function HomePage() {
                         <GlassButton
                           size="sm"
                           variant="primary"
-                          className="text-sm px-4 py-2"
+                          className="text-sm px-3 lg:px-4 py-2"
                         >
                           View Details
                         </GlassButton>
@@ -393,17 +391,17 @@ export default function HomePage() {
                       <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
 
-                    <div className="p-4 lg:p-6">
-                      <h3 className="font-bold text-base lg:text-lg mb-2 text-white line-clamp-1">{skin.name}</h3>
-                      <p className="text-gray-400 text-sm mb-3 lg:mb-4 capitalize">{skin.weapon_type}</p>
+                    <div className="p-3 sm:p-4 lg:p-6">
+                      <h3 className="font-bold text-sm sm:text-base lg:text-lg mb-2 text-white line-clamp-1">{skin.name}</h3>
+                      <p className="text-gray-400 text-xs lg:text-sm mb-3 lg:mb-4 capitalize">{skin.weapon_type}</p>
                       
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-xl lg:text-2xl font-bold text-green-400 block">
-                            {priceRange}
+                          <span className="text-lg sm:text-xl lg:text-2xl font-bold text-green-400 block">
+                            {formatPrice(highestPrice)}
                           </span>
                           <span className="text-xs text-gray-400">
-                            {skin.skin_condition_prices.length} conditions available
+                            up to • {skin.skin_condition_prices.length} conditions
                           </span>
                         </div>
                         <div className="text-center text-xs text-gray-400">

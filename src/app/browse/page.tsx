@@ -2,18 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Filter, Grid, List, SortAsc } from 'lucide-react'
+import { Filter, Grid, List } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import SearchBar from '@/components/ui/SearchBar'
-import LoadingSpinner, { SkeletonCard } from '@/components/ui/LoadingSpinner'
 import SkinCard, { SkinCardSkeleton } from '@/components/skins/SkinCard'
 import SkinDetailModal from '@/components/ui/SkinDetailModal'
 import BuySellModal from '@/components/ui/BuySellModal'
 import { useSkins } from '@/hooks/useSkins'
 import { SkinFilters, WeaponType, SkinRarity, WEAPON_TYPES, SKIN_RARITIES, Skin } from '@/types'
-
-const ITEMS_PER_PAGE_OPTIONS = [12, 24, 48]
 
 interface BuySellModalState {
   isOpen: boolean
