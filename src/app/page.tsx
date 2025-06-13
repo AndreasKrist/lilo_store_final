@@ -19,7 +19,7 @@ const featuredSkins = [
     name: 'AK-47 | Redline',
     weapon_type: 'rifle' as const,
     rarity: 'classified' as const,
-    image_url: '',
+    image_url: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_cobra_light_png.png',
     description: 'A powerful automatic rifle, the AK-47 fires 7.62mm Soviet rounds and is the preferred assault rifle of many terrorist organizations.',
     market_hash_name: 'AK-47 | Redline',
     created_at: new Date().toISOString(),
@@ -72,7 +72,7 @@ const featuredSkins = [
     name: 'AWP | Lightning Strike',
     weapon_type: 'sniper' as const,
     rarity: 'classified' as const,
-    image_url: '',
+    image_url: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_awp_am_lightning_awp_light_png.png',
     description: 'High risk and high reward, the infamous AWP is recognizable by its signature report and one-shot, one-kill policy.',
     market_hash_name: 'AWP | Lightning Strike',
     created_at: new Date().toISOString(),
@@ -105,7 +105,7 @@ const featuredSkins = [
     name: 'M4A4 | Asiimov',
     weapon_type: 'rifle' as const,
     rarity: 'covert' as const,
-    image_url: '',
+    image_url: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a4_howl_light_png.png',
     description: 'More accurate but less damaging than its AK-47 counterpart, the M4A4 is the full-auto assault rifle of choice for CTs.',
     market_hash_name: 'M4A4 | Asiimov',
     created_at: new Date().toISOString(),
@@ -372,7 +372,23 @@ export default function HomePage() {
                         </span>
                       </div>
                       
-                      <div className="absolute inset-0 flex items-center justify-center">
+                      {/* Skin Image */}
+                      {skin.image_url ? (
+                        <img 
+                          src={skin.image_url}
+                          alt={skin.name}
+                          className="absolute inset-0 w-full h-full object-contain p-4"
+                          onError={(e) => {
+                            // Fallback to weapon emoji if image fails to load
+                            e.currentTarget.style.display = 'none'
+                            const fallback = e.currentTarget.parentElement?.querySelector('.emoji-fallback') as HTMLElement
+                            if (fallback) fallback.style.display = 'flex'
+                          }}
+                        />
+                      ) : null}
+                      
+                      {/* Weapon Emoji Fallback */}
+                      <div className="emoji-fallback absolute inset-0 flex items-center justify-center" style={{ display: skin.image_url ? 'none' : 'flex' }}>
                         <div className="text-3xl sm:text-4xl lg:text-6xl opacity-50">{getWeaponEmoji(skin.weapon_type)}</div>
                       </div>
 

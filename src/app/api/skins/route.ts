@@ -1,3 +1,4 @@
+// src/app/api/skins/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
@@ -21,33 +22,59 @@ export async function GET(request: NextRequest) {
       search, weapon_types, rarities, conditions, price_min, price_max, sort_by, page, limit
     })
 
-    // Build query with proper count
+    // Start building the query
     let query = supabase
       .from('skins')
       .select(`
-        *,
-        skin_condition_prices (*)
+        id,
+        name,
+        description,
+        weapon_type,
+        weapon_name,
+        category,
+        rarity,
+        rarity_name,
+        rarity_color,
+        pattern_name,
+        min_float,
+        max_float,
+        stattrak,
+        souvenir,
+        market_hash_name,
+        image_url,
+        type,
+        created_at,
+        updated_at,
+        skin_condition_prices (
+          id,
+          condition,
+          condition_name,
+          float_range,
+          base_price,
+          current_price,
+          steam_price,
+          last_updated
+        )
       `, { count: 'exact' })
+      .eq('type', 'skin') // Only get skins, not other items
 
-    // Apply filters
+    // Apply search filter
     if (search) {
       query = query.ilike('name', `%${search}%`)
     }
 
+    // Apply weapon type filter
     if (weapon_types.length > 0) {
       query = query.in('weapon_type', weapon_types)
     }
 
+    // Apply rarity filter
     if (rarities.length > 0) {
       query = query.in('rarity', rarities)
     }
 
-    // Apply sorting
+    // Apply basic sorting (price sorting will be done after fetching due to JOIN complexity)
     switch (sort_by) {
-      case 'price_asc':
-      case 'price_desc':
-        // We'll sort by price after fetching since it's in a related table
-        break
       case 'name_asc':
         query = query.order('name', { ascending: true })
         break
@@ -61,7 +88,7 @@ export async function GET(request: NextRequest) {
         query = query.order('name', { ascending: true })
     }
 
-    // Execute query
+    // Execute the main query
     const { data: skins, error, count } = await query
 
     if (error) {
@@ -74,15 +101,28 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ Fetched skins:', skins?.length, 'Total count:', count)
 
-    // Filter by price if specified
-    let filteredSkins = skins || []
+    // Post-process the data
+    let processedSkins = (skins || []).map(skin => ({
+      ...skin,
+      skin_condition_prices: skin.skin_condition_prices || []
+    }))
+
+    // Apply condition filter
+    if (conditions.length > 0) {
+      processedSkins = processedSkins.filter(skin => {
+        const skinConditions = skin.skin_condition_prices.map((p: any) => p.condition)
+        return conditions.some(condition => skinConditions.includes(condition))
+      })
+    }
+
+    // Apply price filter
     if (price_min !== undefined || price_max !== undefined) {
-      filteredSkins = filteredSkins.filter(skin => {
-        const prices = skin.skin_condition_prices || []
+      processedSkins = processedSkins.filter(skin => {
+        const prices = skin.skin_condition_prices.map((p: any) => p.current_price).filter(p => p > 0)
         if (prices.length === 0) return false
         
-        const minPrice = Math.min(...prices.map((p: any) => p.current_price))
-        const maxPrice = Math.max(...prices.map((p: any) => p.current_price))
+        const minPrice = Math.min(...prices)
+        const maxPrice = Math.max(...prices)
         
         if (price_min !== undefined && maxPrice < price_min) return false
         if (price_max !== undefined && minPrice > price_max) return false
@@ -90,28 +130,20 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Filter by conditions if specified
-    if (conditions.length > 0) {
-      filteredSkins = filteredSkins.filter(skin => {
-        const skinConditions = (skin.skin_condition_prices || []).map((p: any) => p.condition)
-        return conditions.some(condition => skinConditions.includes(condition))
-      })
-    }
-
-    // Sort by price if needed
+    // Apply price sorting
     if (sort_by === 'price_asc' || sort_by === 'price_desc') {
-      filteredSkins.sort((a, b) => {
-        const aPrices = a.skin_condition_prices?.map((p: any) => p.current_price) || [0]
-        const bPrices = b.skin_condition_prices?.map((p: any) => p.current_price) || [0]
-        const aPrice = Math.min(...aPrices)
-        const bPrice = Math.min(...bPrices)
+      processedSkins.sort((a, b) => {
+        const aPrices = a.skin_condition_prices?.map((p: any) => p.current_price).filter((p: number) => p > 0) || [0]
+        const bPrices = b.skin_condition_prices?.map((p: any) => p.current_price).filter((p: number) => p > 0) || [0]
+        const aPrice = aPrices.length > 0 ? Math.min(...aPrices) : 0
+        const bPrice = bPrices.length > 0 ? Math.min(...bPrices) : 0
         return sort_by === 'price_asc' ? aPrice - bPrice : bPrice - aPrice
       })
     }
 
-    // Apply pagination to filtered results
-    const totalFiltered = filteredSkins.length
-    const paginatedSkins = filteredSkins.slice(offset, offset + limit)
+    // Apply pagination to processed results
+    const totalFiltered = processedSkins.length
+    const paginatedSkins = processedSkins.slice(offset, offset + limit)
 
     console.log('📄 Returning:', paginatedSkins.length, 'skins, page', page, 'of', Math.ceil(totalFiltered / limit))
 
@@ -129,5 +161,62 @@ export async function GET(request: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     )
+  }
+}
+
+// GET specific skin by ID
+export async function GET_BY_ID(skinId: string) {
+  try {
+    const { data: skin, error } = await supabase
+      .from('skins')
+      .select(`
+        *,
+        skin_condition_prices (*)
+      `)
+      .eq('id', skinId)
+      .eq('type', 'skin')
+      .single()
+
+    if (error) {
+      return null
+    }
+
+    return skin
+  } catch (error) {
+    console.error('❌ Error fetching skin by ID:', error)
+    return null
+  }
+}
+
+// Search function for other item types
+export async function searchItems(type: string, searchQuery: string = '', limit: number = 20) {
+  try {
+    const validTypes = ['case', 'sticker', 'agent', 'music_kit', 'graffiti', 'patch', 'key', 'collectible']
+    
+    if (!validTypes.includes(type)) {
+      return { data: [], error: 'Invalid item type' }
+    }
+
+    let tableName = type === 'case' ? 'cases' : 
+                   type === 'music_kit' ? 'music_kits' : 
+                   type + 's' // Most tables are just plural
+
+    let query = supabase
+      .from(tableName)
+      .select('*')
+      .limit(limit)
+
+    if (searchQuery) {
+      query = query.ilike('name', `%${searchQuery}%`)
+    }
+
+    query = query.order('name', { ascending: true })
+
+    const { data, error } = await query
+
+    return { data: data || [], error }
+  } catch (error) {
+    console.error(`❌ Error searching ${type}s:`, error)
+    return { data: [], error: error.message }
   }
 }

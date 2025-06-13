@@ -65,8 +65,23 @@ export default function SkinCard({
           <div className="flex items-center p-3 lg:p-4 gap-3 lg:gap-4">
             {/* Image Section */}
             <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-gray-800/20 to-gray-900/20 rounded-lg overflow-hidden flex-shrink-0">
-              {/* Weapon Emoji */}
-              <div className="absolute inset-0 flex items-center justify-center">
+              {/* Skin Image */}
+              {(skin as any).image_url ? (
+                <img 
+                  src={(skin as any).image_url}
+                  alt={skin.name}
+                  className="absolute inset-0 w-full h-full object-contain p-1"
+                  onError={(e) => {
+                    // Fallback to weapon emoji if image fails to load
+                    e.currentTarget.style.display = 'none'
+                    const fallback = e.currentTarget.parentElement?.querySelector('.emoji-fallback') as HTMLElement
+                    if (fallback) fallback.style.display = 'flex'
+                  }}
+                />
+              ) : null}
+              
+              {/* Weapon Emoji Fallback */}
+              <div className="emoji-fallback absolute inset-0 flex items-center justify-center" style={{ display: (skin as any).image_url ? 'none' : 'flex' }}>
                 <div className="text-xl sm:text-2xl lg:text-3xl opacity-60">
                   {getWeaponEmoji(skin.weapon_type)}
                 </div>
@@ -161,8 +176,23 @@ export default function SkinCard({
             </span>
           </div>
 
-          {/* Weapon Emoji */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          {/* Skin Image */}
+          {(skin as any).image_url ? (
+            <img 
+              src={(skin as any).image_url}
+              alt={skin.name}
+              className="absolute inset-0 w-full h-full object-contain p-2"
+              onError={(e) => {
+                // Fallback to weapon emoji if image fails to load
+                e.currentTarget.style.display = 'none'
+                const fallback = e.currentTarget.parentElement?.querySelector('.emoji-fallback') as HTMLElement
+                if (fallback) fallback.style.display = 'flex'
+              }}
+            />
+          ) : null}
+          
+          {/* Weapon Emoji Fallback */}
+          <div className="emoji-fallback absolute inset-0 flex items-center justify-center" style={{ display: (skin as any).image_url ? 'none' : 'flex' }}>
             <div className="text-3xl sm:text-4xl lg:text-6xl opacity-60">
               {getWeaponEmoji(skin.weapon_type)}
             </div>

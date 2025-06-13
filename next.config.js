@@ -4,11 +4,19 @@ const nextConfig = {
     domains: [
       'steamcommunity-a.akamaihd.net', 
       'steamcdn-a.akamaihd.net',
-      'lh3.googleusercontent.com'
+      'lh3.googleusercontent.com',
+      'raw.githubusercontent.com', // For CS2 item images
+      'cdn.cloudflare.steamstatic.com', // Steam CDN
+      'community.akamai.steamstatic.com' // Steam Community images
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+        pathname: '/ByMykel/counter-strike-image-tracker/**',
+      },
     ],
   },
-  // Remove the deprecated experimental.appDir option
-  // It's no longer needed in Next.js 14
   
   // Add headers to fix CSP issues
   async headers() {
@@ -24,7 +32,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https: blob:",
-              "connect-src 'self' https://*.supabase.co https://accounts.google.com",
+              "connect-src 'self' https://*.supabase.co https://accounts.google.com https://raw.githubusercontent.com https://bymykel.github.io",
               "frame-src 'self' https://accounts.google.com",
             ].join('; ')
           },

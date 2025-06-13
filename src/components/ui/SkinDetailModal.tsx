@@ -93,8 +93,23 @@ export default function SkinDetailModal({
                 <div className="space-y-4">
                   {/* Large Skin Display */}
                   <div className={`relative h-64 lg:h-80 bg-gradient-to-br from-gray-800/20 to-gray-900/20 rounded-xl overflow-hidden border-l-4 ${getRarityColor(skin.rarity)}`}>
-                    {/* Weapon Emoji (placeholder for actual image) */}
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    {/* Skin Image */}
+                    {(skin as any).image_url ? (
+                      <img 
+                        src={(skin as any).image_url}
+                        alt={skin.name}
+                        className="absolute inset-0 w-full h-full object-contain p-4"
+                        onError={(e) => {
+                          // Fallback to weapon emoji if image fails to load
+                          e.currentTarget.style.display = 'none'
+                          const fallback = e.currentTarget.parentElement?.querySelector('.emoji-fallback') as HTMLElement
+                          if (fallback) fallback.style.display = 'flex'
+                        }}
+                      />
+                    ) : null}
+                    
+                    {/* Weapon Emoji Fallback */}
+                    <div className="emoji-fallback absolute inset-0 flex items-center justify-center" style={{ display: (skin as any).image_url ? 'none' : 'flex' }}>
                       <div className="text-8xl lg:text-9xl opacity-60">
                         {getWeaponEmoji(skin.weapon_type)}
                       </div>
