@@ -151,11 +151,28 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 lg:space-x-3 flex-shrink-0">
-            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center font-bold text-sm lg:text-base">
-              L
-            </div>
+            {/* Option 1: Using uploaded logo image */}
+            <Image
+              src="/logo.png"
+              alt="Lilo Store"
+              width={40}
+              height={40}
+              className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg"
+            />
+            
+            {/* Option 2: Keep gradient background with logo */}
+            {/* <div className="relative w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
+              <Image
+                src="/logo-white.png"
+                alt="Lilo Store"
+                width={24}
+                height={24}
+                className="w-6 h-6 lg:w-7 lg:h-7"
+              />
+            </div> */}
+            
             <span className="text-lg lg:text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent hidden sm:block">
-              Lilo Store
+              LiloStore
             </span>
           </Link>
 

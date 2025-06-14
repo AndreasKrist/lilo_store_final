@@ -8,21 +8,34 @@ import Footer from '@/components/layout/Footer'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Lilo Store - Premium CS2 Skin Trading Platform',
+  title: 'LiloStore - Premium CS2 Skin Trading Platform',
   description: 'Experience the future of CS2 skin trading with our ticket-based system. Safe, secure, and professionally managed transactions.',
   keywords: 'CS2, Counter-Strike 2, skins, trading, marketplace, CSGO, gaming',
-  authors: [{ name: 'Lilo Store Team' }],
+
+// Favicon and icons
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '192x192' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180' },
+    ],
+  },
+
+
+  authors: [{ name: 'LiloStore Team' }],
   openGraph: {
-    title: 'Lilo Store - Premium CS2 Skin Trading Platform',
+    title: 'LiloStore - Premium CS2 Skin Trading Platform',
     description: 'Experience the future of CS2 skin trading with our ticket-based system.',
     url: 'https://lilo-store.vercel.app',
-    siteName: 'Lilo Store',
+    siteName: 'LiloStore',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Lilo Store - CS2 Skin Trading',
+        alt: 'LiloStore - CS2 Skin Trading',
       },
     ],
     locale: 'en_US',
@@ -30,7 +43,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Lilo Store - Premium CS2 Skin Trading Platform',
+    title: 'LiloStore - Premium CS2 Skin Trading Platform',
     description: 'Experience the future of CS2 skin trading with our ticket-based system.',
     images: ['/og-image.jpg'],
   },
