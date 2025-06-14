@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSession, signIn, signOut } from 'next-auth/react'
-import { Menu, X, User, LogOut, Settings, Ticket } from 'lucide-react'
+import { Menu, X, User, LogOut, Settings, Ticket, Crown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import GlassCard from '@/components/ui/GlassCard'
+import { isAdmin } from '@/lib/admin'
+
 
 export default function Navbar() {
   const { data: session, status } = useSession()
@@ -25,12 +27,19 @@ export default function Navbar() {
     { name: 'My Tickets', href: '/tickets' },
   ]
 
+  if (['andreasmk8@gmail.com', 'fraxav474@gmail.com'].includes(session?.user?.email)) {
+  navigation.push({ name: '👑 Admin', href: '/admin' })
+}
+
   const profileMenuItems = [
     { name: 'Profile', href: '/profile', icon: User },
     { name: 'My Tickets', href: '/tickets', icon: Ticket },
     { name: 'Settings', href: '/profile', icon: Settings }, // Redirect to profile for now
   ]
 
+  if (['andreasmk8@gmail.com', 'fraxav474@gmail.com'].includes(session?.user?.email)) {
+  profileMenuItems.push({ name: 'Admin Panel', href: '/admin', icon: Crown })
+}
   // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
