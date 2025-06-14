@@ -53,6 +53,7 @@ const statusConfig = {
 export default function TicketsPage() {
   const [selectedStatus, setSelectedStatus] = useState<TicketStatus | 'all'>('all')
   const [selectedType, setSelectedType] = useState<TicketType | 'all'>('all')
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
   
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const {
@@ -80,6 +81,47 @@ export default function TicketsPage() {
       status: selectedStatus === 'all' ? undefined : selectedStatus,
       type: type === 'all' ? undefined : type
     })
+  }
+
+  // USER ACTION HANDLER
+  const handleUserAction = async (ticketId: string, action: 'accept' | 'decline' | 'cancel') => {
+    if (!isAuthenticated) return
+
+    const confirmMessages = {
+      accept: 'Accept this quote? You will proceed with the trade.',
+      decline: 'Decline this quote? This will cancel your request.',
+      cancel: 'Cancel this request? This action cannot be undone.'
+    }
+
+    if (!confirm(confirmMessages[action])) return
+
+    setActionLoading(ticketId)
+
+    try {
+      const updates = {
+        accept: { status: 'processing' },
+        decline: { status: 'cancelled' },
+        cancel: { status: 'cancelled' }
+      }
+
+      const response = await fetch(`/api/tickets?id=${ticketId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates[action])
+      })
+
+      if (response.ok) {
+        refresh() // Refresh the tickets list
+        alert(`Request ${action}ed successfully!`)
+      } else {
+        throw new Error('Failed to update ticket')
+      }
+    } catch (error) {
+      console.error('Error updating ticket:', error)
+      alert(`Failed to ${action} request. Please try again.`)
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   if (authLoading) {
@@ -311,37 +353,103 @@ export default function TicketsPage() {
                         )}
                       </div>
                       
-                      {/* Timestamps */}
-                      <div className="lg:w-48 space-y-2 text-right lg:text-left">
-                        <div>
-                          <p className="text-xs text-gray-400">Created</p>
-                          <p className="text-sm text-gray-300">{getRelativeTime(ticket.created_at)}</p>
+                      {/* Timestamps & Actions */}
+                      <div className="lg:w-64 space-y-4">
+                        {/* Timestamps */}
+                        <div className="space-y-2 text-right lg:text-left">
+                          <div>
+                            <p className="text-xs text-gray-400">Created</p>
+                            <p className="text-sm text-gray-300">{getRelativeTime(ticket.created_at)}</p>
+                          </div>
+                          
+                          {ticket.updated_at !== ticket.created_at && (
+                            <div>
+                              <p className="text-xs text-gray-400">Updated</p>
+                              <p className="text-sm text-gray-300">{getRelativeTime(ticket.updated_at)}</p>
+                            </div>
+                          )}
                         </div>
                         
-                        {ticket.updated_at !== ticket.created_at && (
-                          <div>
-                            <p className="text-xs text-gray-400">Updated</p>
-                            <p className="text-sm text-gray-300">{getRelativeTime(ticket.updated_at)}</p>
-                          </div>
-                        )}
-                        
-                        {/* Action Buttons */}
-                        <div className="pt-2">
-                          {ticket.status === 'quote_sent' && (
+                        {/* USER ACTION BUTTONS */}
+                        <div className="space-y-2">
+                          {/* Quote Sent - User can Accept/Decline */}
+                          {ticket.status === 'quote_sent' && ticket.quoted_price && (
                             <div className="space-y-2">
-                              <GlassButton size="sm" variant="secondary" className="w-full">
-                                Accept Quote
+                              <div className="text-center p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                                <p className="text-green-400 font-semibold text-sm">
+                                  {ticket.type === 'buy' ? 'Pay' : 'You get'}: {formatPrice(ticket.quoted_price)}
+                                </p>
+                              </div>
+                              <GlassButton 
+                                size="sm" 
+                                variant="primary" 
+                                className="w-full"
+                                onClick={() => handleUserAction(ticket.id, 'accept')}
+                                loading={actionLoading === ticket.id}
+                                disabled={actionLoading !== null}
+                              >
+                                ✅ Accept Quote
                               </GlassButton>
-                              <GlassButton size="sm" className="w-full">
-                                Decline
+                              <GlassButton 
+                                size="sm" 
+                                className="w-full"
+                                onClick={() => handleUserAction(ticket.id, 'decline')}
+                                loading={actionLoading === ticket.id}
+                                disabled={actionLoading !== null}
+                              >
+                                ❌ Decline Quote
                               </GlassButton>
                             </div>
                           )}
                           
+                          {/* Pending - User can Cancel */}
                           {ticket.status === 'pending' && (
-                            <GlassButton size="sm" variant="danger" className="w-full">
-                              Cancel Request
+                            <GlassButton 
+                              size="sm" 
+                              variant="danger" 
+                              className="w-full"
+                              onClick={() => handleUserAction(ticket.id, 'cancel')}
+                              loading={actionLoading === ticket.id}
+                              disabled={actionLoading !== null}
+                            >
+                              🗑️ Cancel Request
                             </GlassButton>
+                          )}
+                          
+                          {/* Processing - Show status */}
+                          {ticket.status === 'processing' && (
+                            <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                              <p className="text-blue-400 text-sm">
+                                🔄 Trade in progress...
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                Admin is processing your trade
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Completed - Show success */}
+                          {ticket.status === 'completed' && (
+                            <div className="text-center p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                              <p className="text-green-400 text-sm">
+                                🎉 Trade completed!
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                Thank you for trading with us
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Cancelled - Show cancelled */}
+                          {ticket.status === 'cancelled' && (
+                            <div className="text-center p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                              <p className="text-red-400 text-sm">
+                                ⭕ Request cancelled
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                You can create a new request anytime
+                              </p>
+                            </div>
                           )}
                         </div>
                       </div>

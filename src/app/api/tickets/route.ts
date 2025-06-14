@@ -200,6 +200,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Update your src/app/api/tickets/route.ts - Add user ticket actions
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -237,10 +238,10 @@ export async function PUT(request: NextRequest) {
 
     const updates = await request.json()
     
-    // Only allow users to update their own tickets
+    // Check if ticket belongs to user
     const { data: existingTicket } = await supabase
       .from('tickets')
-      .select('user_id')
+      .select('user_id, status')
       .eq('id', ticketId)
       .single()
 
@@ -250,6 +251,27 @@ export async function PUT(request: NextRequest) {
         { status: 404 }
       )
     }
+
+    // Validate user can make this status change
+    const allowedUserActions = {
+      'pending': ['cancelled'], // User can cancel pending requests
+      'quote_sent': ['processing', 'cancelled'], // User can accept (->processing) or decline (->cancelled) quotes
+    }
+
+    const currentStatus = existingTicket.status
+    const newStatus = updates.status
+
+    if (newStatus && allowedUserActions[currentStatus as keyof typeof allowedUserActions]) {
+      const allowed = allowedUserActions[currentStatus as keyof typeof allowedUserActions]
+      if (!allowed.includes(newStatus)) {
+        return NextResponse.json(
+          { error: `Cannot change status from ${currentStatus} to ${newStatus}` },
+          { status: 400 }
+        )
+      }
+    }
+
+    console.log('🎫 User updating ticket:', ticketId, 'from', currentStatus, 'to', newStatus)
 
     // Update ticket
     const { data: ticket, error } = await supabase
@@ -277,6 +299,8 @@ export async function PUT(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    console.log('✅ User updated ticket successfully')
 
     return NextResponse.json(ticket)
 
