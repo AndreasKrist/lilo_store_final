@@ -37,7 +37,7 @@ export default function AdminPage() {
   const [updating, setUpdating] = useState(false)
 
   // Check admin access
-  const isAdmin = ['andreasmk8@gmail.com', 'fraxav474@gmail.com'].includes(user?.email)
+  const isAdmin = user?.email && ['andreasmk8@gmail.com', 'fraxav474@gmail.com'].includes(user.email)
 
   const fetchTickets = async () => {
     try {

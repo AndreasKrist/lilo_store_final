@@ -27,7 +27,7 @@ export default function Navbar() {
     { name: 'My Tickets', href: '/tickets' },
   ]
 
-  if (['andreasmk8@gmail.com', 'fraxav474@gmail.com'].includes(session?.user?.email)) {
+  if (session?.user?.email && ['andreasmk8@gmail.com', 'fraxav474@gmail.com'].includes(session.user.email)) {
   navigation.push({ name: '👑 Admin', href: '/admin' })
 }
 
@@ -37,7 +37,7 @@ export default function Navbar() {
     { name: 'Settings', href: '/profile', icon: Settings }, // Redirect to profile for now
   ]
 
-  if (['andreasmk8@gmail.com', 'fraxav474@gmail.com'].includes(session?.user?.email)) {
+  if (session?.user?.email && ['andreasmk8@gmail.com', 'fraxav474@gmail.com'].includes(session.user.email)) {
   profileMenuItems.push({ name: 'Admin Panel', href: '/admin', icon: Crown })
 }
   // Close mobile menu when clicking outside
