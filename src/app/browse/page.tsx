@@ -52,6 +52,7 @@ export default function BrowsePage() {
   const [showFilters, setShowFilters] = useState(false)
   const [selectedSkin, setSelectedSkin] = useState<Skin | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const [buySellModal, setBuySellModal] = useState<BuySellModalState>({
     isOpen: false,
     type: 'buy',
@@ -73,6 +74,24 @@ export default function BrowsePage() {
     clearFilters,
   } = useSkins()
 
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Handle URL search parameters
+  useEffect(() => {
+    const urlSearch = searchParams.get('search')
+    if (urlSearch && urlSearch !== filters.search) {
+      handleSearch(urlSearch)
+    }
+  }, [searchParams, filters.search, handleSearch])
   // Handle URL search parameters
   useEffect(() => {
     const urlSearch = searchParams.get('search')
@@ -477,36 +496,55 @@ export default function BrowsePage() {
                 {/* Pagination */}
                 {pagination.totalPages > 1 && (
                   <div className="flex justify-center mt-8 lg:mt-12">
-                    <div className="flex items-center gap-2 flex-wrap justify-center">
+                    <div className="flex items-center gap-1 sm:gap-2 justify-center">
                       <GlassButton
                         onClick={() => handlePageChange(pagination.page - 1)}
                         disabled={pagination.page === 1}
                         size="sm"
+                        className="w-8 h-8 sm:w-10 sm:h-10 p-0 flex items-center justify-center flex-shrink-0"
                       >
-                        Previous
+                        ‹
                       </GlassButton>
                       
-                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                        const page = i + 1
-                        return (
+                      {(() => {
+                        const currentPage = pagination.page
+                        const totalPages = pagination.totalPages
+                        // Responsive: 3 pages on mobile, 5 on desktop
+                        const maxVisible = isMobile ? 3 : 5
+                        
+                        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2))
+                        let endPage = Math.min(totalPages, startPage + maxVisible - 1)
+                        
+                        // Adjust start if we're near the end
+                        if (endPage - startPage + 1 < maxVisible) {
+                          startPage = Math.max(1, endPage - maxVisible + 1)
+                        }
+                        
+                        const pages = []
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(i)
+                        }
+                        
+                        return pages.map(page => (
                           <GlassButton
                             key={page}
                             onClick={() => handlePageChange(page)}
                             variant={pagination.page === page ? 'primary' : 'glass'}
                             size="sm"
-                            className="w-10 h-10 p-0 flex items-center justify-center"
+                            className="w-8 h-8 sm:w-10 sm:h-10 p-0 flex items-center justify-center flex-shrink-0 text-sm"
                           >
                             {page}
                           </GlassButton>
-                        )
-                      })}
+                        ))
+                      })()}
                       
                       <GlassButton
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={pagination.page === pagination.totalPages}
                         size="sm"
+                        className="w-8 h-8 sm:w-10 sm:h-10 p-0 flex items-center justify-center flex-shrink-0"
                       >
-                        Next
+                        ›
                       </GlassButton>
                     </div>
                   </div>
